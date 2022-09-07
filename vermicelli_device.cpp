@@ -1,6 +1,10 @@
-//
-// Created by bigtiddypiratebf on 9/6/22.
-//
+/*!********************************************************************************************************************
+ * @file    vermicelli_device.cpp
+ * @author  Ghassan Younes
+ * @email   22338451+ghassanyounes\@users.noreply.github.com
+ * @date    2022-09-07
+ * @brief
+ *********************************************************************************************************************/
 
 #include "vermicelli_device.h"
 

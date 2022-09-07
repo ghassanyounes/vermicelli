@@ -1,7 +1,10 @@
-//
-// Created by bigtiddypiratebf on 9/7/22.
-//
-
+/*!********************************************************************************************************************
+ * @file    vermicelli_swap_chain.h
+ * @author  Ghassan Younes
+ * @email   22338451+ghassanyounes\@users.noreply.github.com
+ * @date    2022-09-07
+ * @brief
+ *********************************************************************************************************************/
 #ifndef __VERMICELLI_VERMICELLI_SWAP_CHAIN_H__
 #define __VERMICELLI_VERMICELLI_SWAP_CHAIN_H__
 #pragma once

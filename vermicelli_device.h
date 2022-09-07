@@ -1,7 +1,10 @@
-//
-// Created by bigtiddypiratebf on 9/6/22.
-//
-
+/*!********************************************************************************************************************
+ * @file    vermicelli_device.h
+ * @author  Ghassan Younes
+ * @email   22338451+ghassanyounes\@users.noreply.github.com
+ * @date    2022-09-07
+ * @brief
+ *********************************************************************************************************************/
 
 #ifndef __VERMICELLI_VERMICELLI_DEVICE_H__
 #define __VERMICELLI_VERMICELLI_DEVICE_H__

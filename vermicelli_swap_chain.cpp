@@ -1,7 +1,10 @@
-//
-// Created by bigtiddypiratebf on 9/7/22.
-//
-
+/*!********************************************************************************************************************
+ * @file    vermicelli_swap_chain.cpp
+ * @author  Ghassan Younes
+ * @email   22338451+ghassanyounes\@users.noreply.github.com
+ * @date    2022-09-07
+ * @brief
+ *********************************************************************************************************************/
 #include "vermicelli_swap_chain.h"
 // std
 #include <array>
