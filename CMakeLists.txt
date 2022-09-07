@@ -47,3 +47,7 @@ endif ()
 target_link_libraries(vermicelli glfw SDL2pp::SDL2pp glm ${CMAKE_DL_LIBS} ${glm_LIBRARIES} ${SDL2pp_LIBRARIES} ${SDL2_LIBRARIES} ${Vulkan_LIBRARIES} ${Threads_LIBRARIES})
 
 add_dependencies(vermicelli shaders)
+
+if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
+    add_compile_definitions(NDEBUG)
+endif ()

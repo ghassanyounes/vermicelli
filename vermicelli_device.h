@@ -28,7 +28,7 @@ struct QueueFamilyIndices {
     bool     graphicsFamilyHasValue = false;
     bool     presentFamilyHasValue  = false;
 
-    bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
+    [[nodiscard]] bool isComplete() const { return graphicsFamilyHasValue && presentFamilyHasValue; }
 };
 
 class VermicelliDevice {
@@ -55,7 +55,7 @@ class VermicelliDevice {
 
   void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 
-  void hasSDL2RequiredInstanceExtensions();
+  void hasSDL2RequiredInstanceExtensions(bool verbose);
 
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
@@ -66,6 +66,7 @@ class VermicelliDevice {
   VkPhysicalDevice         physicalDevice = VK_NULL_HANDLE;
   VermicelliWindow         &window;
   VkCommandPool            commandPool;
+  bool                     mVerbose;
 
   VkDevice     device_;
   VkSurfaceKHR surface_;
@@ -81,7 +82,7 @@ public:
   const bool enableValidationLayers = true;
 #endif
 
-  VermicelliDevice(VermicelliWindow &window);
+  explicit VermicelliDevice(VermicelliWindow &window, const bool verbose);
 
   ~VermicelliDevice();
 

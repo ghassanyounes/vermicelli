@@ -53,7 +53,7 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-VermicelliDevice::VermicelliDevice(VermicelliWindow &window) : window{window} {
+VermicelliDevice::VermicelliDevice(VermicelliWindow &window, const bool verbose) : window{window}, mVerbose(verbose) {
   createInstance();
   setupDebugMessenger();
   createSurface();
@@ -111,7 +111,7 @@ void VermicelliDevice::createInstance() {
     throw std::runtime_error("failed to create instance!");
   }
 
-  hasSDL2RequiredInstanceExtensions();
+  hasSDL2RequiredInstanceExtensions(mVerbose);
 }
 
 void VermicelliDevice::pickPhysicalDevice() {
@@ -120,7 +120,9 @@ void VermicelliDevice::pickPhysicalDevice() {
   if (deviceCount == 0) {
     throw std::runtime_error("failed to find GPUs with Vulkan support!");
   }
-  std::cout << "Device count: " << deviceCount << std::endl;
+  if (mVerbose) {
+    std::cout << "Device count: " << deviceCount << std::endl;
+  }
   std::vector<VkPhysicalDevice> devices(deviceCount);
   vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
@@ -136,7 +138,9 @@ void VermicelliDevice::pickPhysicalDevice() {
   }
 
   vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-  std::cout << "physical device: " << properties.deviceName << std::endl;
+  if (mVerbose) {
+    std::cout << "physical Device: " << properties.deviceName << std::endl;
+  }
 }
 
 void VermicelliDevice::createLogicalDevice() {
@@ -168,7 +172,7 @@ void VermicelliDevice::createLogicalDevice() {
   createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
   createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-  // might not really be necessary anymore because device specific validation layers
+  // might not really be necessary anymore because mDevice specific validation layers
   // have been deprecated
   if (enableValidationLayers) {
     createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
@@ -178,7 +182,7 @@ void VermicelliDevice::createLogicalDevice() {
   }
 
   if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device_) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create logical device!");
+    throw std::runtime_error("failed to create logical mDevice!");
   }
 
   vkGetDeviceQueue(device_, indices.graphicsFamily, 0, &graphicsQueue_);
@@ -281,23 +285,31 @@ std::vector<const char *> VermicelliDevice::getRequiredExtensions() {
   return extensions;
 }
 
-void VermicelliDevice::hasSDL2RequiredInstanceExtensions() {
+void VermicelliDevice::hasSDL2RequiredInstanceExtensions(const bool verbose) {
   uint32_t extensionCount = 0;
   vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
   std::vector<VkExtensionProperties> extensions(extensionCount);
   vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-  std::cout << "available extensions:" << std::endl;
+  if (verbose) {
+    std::cout << "available extensions:" << std::endl;
+  }
   std::unordered_set<std::string> available;
   for (const auto                 &extension: extensions) {
-    std::cout << "\t" << extension.extensionName << std::endl;
+    if (verbose) {
+      std::cout << "\t" << extension.extensionName << std::endl;
+    }
     available.insert(extension.extensionName);
   }
 
-  std::cout << "required extensions:" << std::endl;
+  if (verbose) {
+    std::cout << "required extensions:" << std::endl;
+  }
   auto            requiredExtensions = getRequiredExtensions();
   for (const auto &required: requiredExtensions) {
-    std::cout << "\t" << required << std::endl;
+    if (verbose) {
+      std::cout << "\t" << required << std::endl;
+    }
     if (available.find(required) == available.end()) {
       throw std::runtime_error("Missing required SDL2 extension");
     }

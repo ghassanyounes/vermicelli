@@ -22,8 +22,9 @@ namespace vermicelli {
 
 class Application {
   VermicelliWindow                    mWindow{"Vermicelli", mDim};
-  VermicelliDevice                    mDevice{mWindow};
-  VermicelliSwapChain                 mSwapChain{mDevice, mWindow.getExtent()};
+  bool                                mVerbose;
+  VermicelliDevice                    mDevice{mWindow, mVerbose};
+  VermicelliSwapChain                 mSwapChain{mDevice, mWindow.getExtent(), mVerbose};
   /*VermicelliPipeline  mPipeline{mDevice, "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv",
                                 VermicelliPipeline::defaultPipelineConfigInfo(mDim)};*/
   std::unique_ptr<VermicelliPipeline> mPipeline;
@@ -39,7 +40,7 @@ class Application {
   void drawFrame();
 
 public:
-  Application();
+  explicit Application(const bool verbose);
 
   ~Application();
 

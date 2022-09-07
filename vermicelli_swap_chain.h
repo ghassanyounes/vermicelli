@@ -25,7 +25,7 @@ class VermicelliSwapChain {
 public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-  VermicelliSwapChain(VermicelliDevice &deviceRef, VkExtent2D windowExtent);
+  VermicelliSwapChain(VermicelliDevice &deviceRef, VkExtent2D windowExtent, bool verbose);
 
   ~VermicelliSwapChain();
 
@@ -33,26 +33,22 @@ public:
 
   void operator=(const VermicelliSwapChain &) = delete;
 
-  VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
+  VkFramebuffer getFrameBuffer(int index) { return mSwapChainFrameBuffers[index]; }
 
-  VkRenderPass getRenderPass() { return renderPass; }
+  VkRenderPass getRenderPass() { return mRenderPass; }
 
-  VkImageView getImageView(int index) { return swapChainImageViews[index]; }
+  VkImageView getImageView(int index) { return mSwapChainImageViews[index]; }
 
-  size_t imageCount() { return swapChainImages.size(); }
+  size_t imageCount() { return mSwapChainImages.size(); }
 
-  VkFormat getSwapChainImageFormat() { return swapChainImageFormat; }
+  VkFormat getSwapChainImageFormat() { return mSwapChainImageFormat; }
 
-  VkExtent2D getSwapChainExtent() { return swapChainExtent; }
+  VkExtent2D getSwapChainExtent() { return mSwapChainExtent; }
 
-  uint32_t width() { return swapChainExtent.width; }
+  [[nodiscard]] glm::u32vec2 dim() const { return {mSwapChainExtent.width, mSwapChainExtent.height}; }
 
-  uint32_t height() { return swapChainExtent.height; }
-
-  glm::u32vec2 dim() { return {swapChainExtent.width, swapChainExtent.height}; }
-
-  float extentAspectRatio() {
-    return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
+  [[nodiscard]] float extentAspectRatio() const {
+    return static_cast<float>(mSwapChainExtent.width) / static_cast<float>(mSwapChainExtent.height);
   }
 
   VkFormat findDepthFormat();
@@ -70,7 +66,7 @@ private:
 
   void createRenderPass();
 
-  void createFramebuffers();
+  void createFrameBuffers();
 
   void createSyncObjects();
 
@@ -83,28 +79,29 @@ private:
 
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-  VkFormat   swapChainImageFormat;
-  VkExtent2D swapChainExtent;
+  VkFormat   mSwapChainImageFormat;
+  VkExtent2D mSwapChainExtent;
 
-  std::vector<VkFramebuffer> swapChainFramebuffers;
-  VkRenderPass               renderPass;
+  std::vector<VkFramebuffer> mSwapChainFrameBuffers;
+  VkRenderPass               mRenderPass;
 
-  std::vector<VkImage>        depthImages;
-  std::vector<VkDeviceMemory> depthImageMemorys;
-  std::vector<VkImageView>    depthImageViews;
-  std::vector<VkImage>        swapChainImages;
-  std::vector<VkImageView>    swapChainImageViews;
+  std::vector<VkImage>        mDepthImages;
+  std::vector<VkDeviceMemory> mDepthImageMemoryVec;
+  std::vector<VkImageView>    mDepthImageViews;
+  std::vector<VkImage>        mSwapChainImages;
+  std::vector<VkImageView>    mSwapChainImageViews;
 
-  VermicelliDevice &device;
-  VkExtent2D       windowExtent;
+  VermicelliDevice &mDevice;
+  VkExtent2D       mWindowExtent;
 
-  VkSwapchainKHR swapChain;
+  VkSwapchainKHR mSwapChain;
 
-  std::vector<VkSemaphore> imageAvailableSemaphores;
-  std::vector<VkSemaphore> renderFinishedSemaphores;
-  std::vector<VkFence>     inFlightFences;
-  std::vector<VkFence>     imagesInFlight;
-  size_t                   currentFrame = 0;
+  std::vector<VkSemaphore> mImageAvailableSemaphores;
+  std::vector<VkSemaphore> mRenderFinishedSemaphores;
+  std::vector<VkFence>     mInFlightFences;
+  std::vector<VkFence>     mImagesInFlight;
+  size_t                   mCurrentFrame = 0;
+  bool                     mVerbose;
 };
 
 }  // namespace vermicelli

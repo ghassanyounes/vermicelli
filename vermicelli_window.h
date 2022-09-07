@@ -11,8 +11,11 @@
 #pragma once
 
 #ifndef APP_NAME
-#define APP_NAME "default mWindow title"
+#define APP_NAME "default Window title"
 #endif
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL_vulkan.h>
@@ -29,14 +32,14 @@ class VermicelliWindow {
 
   void initWindow();
 
-  VermicelliWindow(const VermicelliWindow &) = delete;
-
-  VermicelliWindow &operator=(const VermicelliWindow &) = delete;
-
 public:
   explicit VermicelliWindow(std::string name = APP_NAME, glm::u32vec2 dim = {800, 600});
 
   ~VermicelliWindow() = default;
+
+  VermicelliWindow(const VermicelliWindow &) = delete;
+
+  VermicelliWindow &operator=(const VermicelliWindow &) = delete;
 
   void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 

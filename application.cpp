@@ -12,7 +12,7 @@
 
 namespace vermicelli {
 
-Application::Application() {
+Application::Application(const bool verbose) : mVerbose(verbose) {
   createPipelineLayout();
   createPipeline();
   createCommandBuffers();
@@ -112,12 +112,12 @@ void Application::drawFrame() {
 
   ///<< FIXME: Will crash when resizing window as image resets, will be implemented;
   if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
-    throw std::runtime_error("Failed to acquire next swapChain image");
+    throw std::runtime_error("Failed to acquire next mSwapChain image");
   }
 
   res = mSwapChain.submitCommandBuffers(&mCommandBuffers[imageIndex], &imageIndex);
   if (res != VK_SUCCESS) {
-    throw std::runtime_error("Failed to present swapChain image");
+    throw std::runtime_error("Failed to present mSwapChain image");
   }
 }
 
