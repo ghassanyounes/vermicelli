@@ -1,9 +1,9 @@
 /*!********************************************************************************************************************
- * @file    vermicelli_device.h
  * @author  Ghassan Younes
  * @email   22338451+ghassanyounes\@users.noreply.github.com
  * @date    2022-09-07
  * @brief
+ * Copyright (c) 2022 Ghassan Younes. All rights reserved.
  *********************************************************************************************************************/
 
 #ifndef __VERMICELLI_VERMICELLI_DEVICE_H__

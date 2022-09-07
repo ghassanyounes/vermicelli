@@ -1,10 +1,11 @@
 /*!********************************************************************************************************************
- * @file    vermicelli_swap_chain.cpp
  * @author  Ghassan Younes
  * @email   22338451+ghassanyounes\@users.noreply.github.com
  * @date    2022-09-07
  * @brief
+ * Copyright (c) 2022 Ghassan Younes. All rights reserved.
  *********************************************************************************************************************/
+
 #include "vermicelli_swap_chain.h"
 // std
 #include <array>

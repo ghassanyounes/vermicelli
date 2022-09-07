@@ -1,9 +1,9 @@
 /*!********************************************************************************************************************
- * @file    application.h
  * @author  Ghassan Younes
  * @email   22338451+ghassanyounes\@users.noreply.github.com
  * @date    2022-09-07
  * @brief
+ * Copyright (c) 2022 Ghassan Younes. All rights reserved.
  *********************************************************************************************************************/
 
 #ifndef __VERMICELLI_APPLICATION_H__
