@@ -52,6 +52,6 @@ if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
     add_compile_definitions(NDEBUG)
     add_custom_command(TARGET vermicelli
             POST_BUILD
-            COMMAND /bin/sh ${CMAKE_SOURCE_DIR}gen_documentation.sh
+            COMMAND /bin/sh ${CMAKE_SOURCE_DIR}/gen_documentation.sh
             )
 endif ()
