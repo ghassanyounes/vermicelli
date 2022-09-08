@@ -53,7 +53,7 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-VermicelliDevice::VermicelliDevice(VermicelliWindow &window, const bool verbose) : window{window}, mVerbose(verbose) {
+VermicelliDevice::VermicelliDevice(VermicelliWindow &window, const bool verbose) : mWindow{window}, mVerbose(verbose) {
   createInstance();
   setupDebugMessenger();
   createSurface();
@@ -63,19 +63,19 @@ VermicelliDevice::VermicelliDevice(VermicelliWindow &window, const bool verbose)
 }
 
 VermicelliDevice::~VermicelliDevice() {
-  vkDestroyCommandPool(device_, commandPool, nullptr);
-  vkDestroyDevice(device_, nullptr);
+  vkDestroyCommandPool(mDevice_, mCommandPool, nullptr);
+  vkDestroyDevice(mDevice_, nullptr);
 
-  if (enableValidationLayers) {
-    DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+  if (mEnableValidationLayers) {
+    DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
   }
 
-  vkDestroySurfaceKHR(instance, surface_, nullptr);
-  vkDestroyInstance(instance, nullptr);
+  vkDestroySurfaceKHR(mInstance, mSurface_, nullptr);
+  vkDestroyInstance(mInstance, nullptr);
 }
 
 void VermicelliDevice::createInstance() {
-  if (enableValidationLayers && !checkValidationLayerSupport()) {
+  if (mEnableValidationLayers && !checkValidationLayerSupport()) {
     throw std::runtime_error("validation layers requested, but not available!");
   }
 
@@ -96,7 +96,7 @@ void VermicelliDevice::createInstance() {
   createInfo.ppEnabledExtensionNames = extensions.data();
 
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-  if (enableValidationLayers) {
+  if (mEnableValidationLayers) {
     createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
 
@@ -107,7 +107,7 @@ void VermicelliDevice::createInstance() {
     createInfo.pNext             = nullptr;
   }
 
-  if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+  if (vkCreateInstance(&createInfo, nullptr, &mInstance) != VK_SUCCESS) {
     throw std::runtime_error("failed to create instance!");
   }
 
@@ -116,7 +116,7 @@ void VermicelliDevice::createInstance() {
 
 void VermicelliDevice::pickPhysicalDevice() {
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
   if (deviceCount == 0) {
     throw std::runtime_error("failed to find GPUs with Vulkan support!");
   }
@@ -124,30 +124,30 @@ void VermicelliDevice::pickPhysicalDevice() {
     std::cout << "Device count: " << deviceCount << std::endl;
   }
   std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+  vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
 
   for (const auto &device: devices) {
     if (isDeviceSuitable(device)) {
-      physicalDevice = device;
+      mPhysicalDevice = device;
       break;
     }
   }
 
-  if (physicalDevice == VK_NULL_HANDLE) {
+  if (mPhysicalDevice == VK_NULL_HANDLE) {
     throw std::runtime_error("failed to find a suitable GPU!");
   }
 
-  vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+  vkGetPhysicalDeviceProperties(mPhysicalDevice, &mProperties);
   if (mVerbose) {
-    std::cout << "physical Device: " << properties.deviceName << std::endl;
+    std::cout << "physical Device: " << mProperties.deviceName << std::endl;
   }
 }
 
 void VermicelliDevice::createLogicalDevice() {
-  QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+  QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t>                   uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+  std::set<uint32_t>                   uniqueQueueFamilies = {indices.mGraphicsFamily, indices.mPresentFamily};
 
   float         queuePriority = 1.0f;
   for (uint32_t queueFamily: uniqueQueueFamilies) {
@@ -174,19 +174,19 @@ void VermicelliDevice::createLogicalDevice() {
 
   // might not really be necessary anymore because mDevice specific validation layers
   // have been deprecated
-  if (enableValidationLayers) {
+  if (mEnableValidationLayers) {
     createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
   } else {
     createInfo.enabledLayerCount = 0;
   }
 
-  if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device_) != VK_SUCCESS) {
+  if (vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mDevice_) != VK_SUCCESS) {
     throw std::runtime_error("failed to create logical mDevice!");
   }
 
-  vkGetDeviceQueue(device_, indices.graphicsFamily, 0, &graphicsQueue_);
-  vkGetDeviceQueue(device_, indices.presentFamily, 0, &presentQueue_);
+  vkGetDeviceQueue(mDevice_, indices.mGraphicsFamily, 0, &mGraphicsQueue_);
+  vkGetDeviceQueue(mDevice_, indices.mPresentFamily, 0, &mPresentQueue_);
 }
 
 void VermicelliDevice::createCommandPool() {
@@ -194,16 +194,16 @@ void VermicelliDevice::createCommandPool() {
 
   VkCommandPoolCreateInfo poolInfo = {};
   poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
+  poolInfo.queueFamilyIndex = queueFamilyIndices.mGraphicsFamily;
   poolInfo.flags =
           VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-  if (vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+  if (vkCreateCommandPool(mDevice_, &poolInfo, nullptr, &mCommandPool) != VK_SUCCESS) {
     throw std::runtime_error("failed to create command pool!");
   }
 }
 
-void VermicelliDevice::createSurface() { window.createWindowSurface(instance, &surface_); }
+void VermicelliDevice::createSurface() { mWindow.createWindowSurface(mInstance, &mSurface_); }
 
 bool VermicelliDevice::isDeviceSuitable(VkPhysicalDevice device) {
   QueueFamilyIndices indices = findQueueFamilies(device);
@@ -213,7 +213,7 @@ bool VermicelliDevice::isDeviceSuitable(VkPhysicalDevice device) {
   bool swapChainAdequate = false;
   if (extensionsSupported) {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
-    swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    swapChainAdequate = !swapChainSupport.mFormats.empty() && !swapChainSupport.mPresentModes.empty();
   }
 
   VkPhysicalDeviceFeatures supportedFeatures;
@@ -237,10 +237,10 @@ void VermicelliDevice::populateDebugMessengerCreateInfo(
 }
 
 void VermicelliDevice::setupDebugMessenger() {
-  if (!enableValidationLayers) return;
+  if (!mEnableValidationLayers) return;
   VkDebugUtilsMessengerCreateInfoEXT createInfo;
   populateDebugMessengerCreateInfo(createInfo);
-  if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+  if (CreateDebugUtilsMessengerEXT(mInstance, &createInfo, nullptr, &mDebugMessenger) != VK_SUCCESS) {
     throw std::runtime_error("failed to set up debug messenger!");
   }
 }
@@ -273,12 +273,12 @@ bool VermicelliDevice::checkValidationLayerSupport() {
 std::vector<const char *> VermicelliDevice::getRequiredExtensions() {
   uint32_t   SDL2ExtensionCount = 0;
   const char **SDL2Extensions;
-  SDL_Vulkan_GetInstanceExtensions(window.Get(), &SDL2ExtensionCount, nullptr);
+  SDL_Vulkan_GetInstanceExtensions(mWindow.Get(), &SDL2ExtensionCount, nullptr);
   SDL2Extensions = new const char *[SDL2ExtensionCount];
-  SDL_Vulkan_GetInstanceExtensions(window.Get(), &SDL2ExtensionCount, SDL2Extensions);
+  SDL_Vulkan_GetInstanceExtensions(mWindow.Get(), &SDL2ExtensionCount, SDL2Extensions);
   std::vector<const char *> extensions(SDL2Extensions, SDL2Extensions + SDL2ExtensionCount);
 
-  if (enableValidationLayers) {
+  if (mEnableValidationLayers) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
@@ -348,14 +348,14 @@ QueueFamilyIndices VermicelliDevice::findQueueFamilies(VkPhysicalDevice device) 
   int             i = 0;
   for (const auto &queueFamily: queueFamilies) {
     if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-      indices.graphicsFamily         = i;
-      indices.graphicsFamilyHasValue = true;
+      indices.mGraphicsFamily         = i;
+      indices.mGraphicsFamilyHasValue = true;
     }
     VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface_, &presentSupport);
+    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, mSurface_, &presentSupport);
     if (queueFamily.queueCount > 0 && presentSupport) {
-      indices.presentFamily         = i;
-      indices.presentFamilyHasValue = true;
+      indices.mPresentFamily         = i;
+      indices.mPresentFamilyHasValue = true;
     }
     if (indices.isComplete()) {
       break;
@@ -369,26 +369,26 @@ QueueFamilyIndices VermicelliDevice::findQueueFamilies(VkPhysicalDevice device) 
 
 SwapChainSupportDetails VermicelliDevice::querySwapChainSupport(VkPhysicalDevice device) {
   SwapChainSupportDetails details;
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface_, &details.capabilities);
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, mSurface_, &details.mCapabilities);
 
   uint32_t formatCount;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface_, &formatCount, nullptr);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface_, &formatCount, nullptr);
 
   if (formatCount != 0) {
-    details.formats.resize(formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface_, &formatCount, details.formats.data());
+    details.mFormats.resize(formatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface_, &formatCount, details.mFormats.data());
   }
 
   uint32_t presentModeCount;
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface_, &presentModeCount, nullptr);
+  vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface_, &presentModeCount, nullptr);
 
   if (presentModeCount != 0) {
-    details.presentModes.resize(presentModeCount);
+    details.mPresentModes.resize(presentModeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR(
             device,
-            surface_,
+            mSurface_,
             &presentModeCount,
-            details.presentModes.data());
+            details.mPresentModes.data());
   }
   return details;
 }
@@ -397,7 +397,7 @@ VkFormat VermicelliDevice::findSupportedFormat(
         const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
   for (VkFormat format: candidates) {
     VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+    vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &props);
 
     if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
       return format;
@@ -411,7 +411,7 @@ VkFormat VermicelliDevice::findSupportedFormat(
 
 uint32_t VermicelliDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
   VkPhysicalDeviceMemoryProperties memProperties;
-  vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+  vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProperties);
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((typeFilter & (1 << i)) &&
         (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -434,34 +434,34 @@ void VermicelliDevice::createBuffer(
   bufferInfo.usage       = usage;
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-  if (vkCreateBuffer(device_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+  if (vkCreateBuffer(mDevice_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
     throw std::runtime_error("failed to create vertex buffer!");
   }
 
   VkMemoryRequirements memRequirements;
-  vkGetBufferMemoryRequirements(device_, buffer, &memRequirements);
+  vkGetBufferMemoryRequirements(mDevice_, buffer, &memRequirements);
 
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize  = memRequirements.size;
   allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-  if (vkAllocateMemory(device_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+  if (vkAllocateMemory(mDevice_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate vertex buffer memory!");
   }
 
-  vkBindBufferMemory(device_, buffer, bufferMemory, 0);
+  vkBindBufferMemory(mDevice_, buffer, bufferMemory, 0);
 }
 
 VkCommandBuffer VermicelliDevice::beginSingleTimeCommands() {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool        = commandPool;
+  allocInfo.commandPool        = mCommandPool;
   allocInfo.commandBufferCount = 1;
 
   VkCommandBuffer commandBuffer;
-  vkAllocateCommandBuffers(device_, &allocInfo, &commandBuffer);
+  vkAllocateCommandBuffers(mDevice_, &allocInfo, &commandBuffer);
 
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -479,10 +479,10 @@ void VermicelliDevice::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers    = &commandBuffer;
 
-  vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(graphicsQueue_);
+  vkQueueSubmit(mGraphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
+  vkQueueWaitIdle(mGraphicsQueue_);
 
-  vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
+  vkFreeCommandBuffers(mDevice_, mCommandPool, 1, &commandBuffer);
 }
 
 void VermicelliDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
@@ -529,23 +529,23 @@ void VermicelliDevice::createImageWithInfo(
         VkMemoryPropertyFlags properties,
         VkImage &image,
         VkDeviceMemory &imageMemory) {
-  if (vkCreateImage(device_, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+  if (vkCreateImage(mDevice_, &imageInfo, nullptr, &image) != VK_SUCCESS) {
     throw std::runtime_error("failed to create image!");
   }
 
   VkMemoryRequirements memRequirements;
-  vkGetImageMemoryRequirements(device_, image, &memRequirements);
+  vkGetImageMemoryRequirements(mDevice_, image, &memRequirements);
 
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize  = memRequirements.size;
   allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-  if (vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+  if (vkAllocateMemory(mDevice_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate image memory!");
   }
 
-  if (vkBindImageMemory(device_, image, imageMemory, 0) != VK_SUCCESS) {
+  if (vkBindImageMemory(mDevice_, image, imageMemory, 0) != VK_SUCCESS) {
     throw std::runtime_error("failed to bind image memory!");
   }
 }

@@ -17,18 +17,18 @@
 namespace vermicelli {
 
 struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR        capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR>   presentModes;
+    VkSurfaceCapabilitiesKHR        mCapabilities;
+    std::vector<VkSurfaceFormatKHR> mFormats;
+    std::vector<VkPresentModeKHR>   mPresentModes;
 };
 
 struct QueueFamilyIndices {
-    uint32_t graphicsFamily;
-    uint32_t presentFamily;
-    bool     graphicsFamilyHasValue = false;
-    bool     presentFamilyHasValue  = false;
+    uint32_t mGraphicsFamily;
+    uint32_t mPresentFamily;
+    bool     mGraphicsFamilyHasValue = false;
+    bool     mPresentFamilyHasValue  = false;
 
-    [[nodiscard]] bool isComplete() const { return graphicsFamilyHasValue && presentFamilyHasValue; }
+    [[nodiscard]] bool isComplete() const { return mGraphicsFamilyHasValue && mPresentFamilyHasValue; }
 };
 
 class VermicelliDevice {
@@ -61,25 +61,25 @@ class VermicelliDevice {
 
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
-  VkInstance               instance;
-  VkDebugUtilsMessengerEXT debugMessenger;
-  VkPhysicalDevice         physicalDevice = VK_NULL_HANDLE;
-  VermicelliWindow         &window;
-  VkCommandPool            commandPool;
+  VkInstance               mInstance;
+  VkDebugUtilsMessengerEXT mDebugMessenger;
+  VkPhysicalDevice         mPhysicalDevice = VK_NULL_HANDLE;
+  VermicelliWindow         &mWindow;
+  VkCommandPool            mCommandPool;
   bool                     mVerbose;
 
-  VkDevice     device_;
-  VkSurfaceKHR surface_;
-  VkQueue      graphicsQueue_;
-  VkQueue      presentQueue_;
+  VkDevice     mDevice_;
+  VkSurfaceKHR mSurface_;
+  VkQueue      mGraphicsQueue_;
+  VkQueue      mPresentQueue_;
 
   const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
   const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 public:
 #ifdef NDEBUG
-  const bool enableValidationLayers = false;
+  const bool mEnableValidationLayers = false;
 #else
-  const bool enableValidationLayers = true;
+  const bool mEnableValidationLayers = true;
 #endif
 
   explicit VermicelliDevice(VermicelliWindow &window, const bool verbose);
@@ -95,21 +95,21 @@ public:
 
   VermicelliDevice &operator=(VermicelliDevice &&) = delete;
 
-  VkCommandPool getCommandPool() { return commandPool; }
+  VkCommandPool getCommandPool() { return mCommandPool; }
 
-  VkDevice device() { return device_; }
+  VkDevice device() { return mDevice_; }
 
-  VkSurfaceKHR surface() { return surface_; }
+  VkSurfaceKHR surface() { return mSurface_; }
 
-  VkQueue graphicsQueue() { return graphicsQueue_; }
+  VkQueue graphicsQueue() { return mGraphicsQueue_; }
 
-  VkQueue presentQueue() { return presentQueue_; }
+  VkQueue presentQueue() { return mPresentQueue_; }
 
-  SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice); }
+  SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(mPhysicalDevice); }
 
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-  QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(physicalDevice); }
+  QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(mPhysicalDevice); }
 
   VkFormat findSupportedFormat(
           const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -137,7 +137,7 @@ public:
           VkImage &image,
           VkDeviceMemory &imageMemory);
 
-  VkPhysicalDeviceProperties properties;
+  VkPhysicalDeviceProperties mProperties;
 };
 }
 

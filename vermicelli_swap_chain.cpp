@@ -18,14 +18,29 @@
 
 namespace vermicelli {
 
-VermicelliSwapChain::VermicelliSwapChain(VermicelliDevice &deviceRef, VkExtent2D extent, const bool verbose)
-        : mDevice{deviceRef}, mWindowExtent{extent}, mVerbose{verbose} {
+VermicelliSwapChain::VermicelliSwapChain(VermicelliDevice &deviceRef, VkExtent2D windowExtent, const bool verbose)
+        : mDevice{deviceRef}, mWindowExtent{windowExtent}, mVerbose{verbose} {
+  init();
+}
+
+void VermicelliSwapChain::init() {
   createSwapChain();
   createImageViews();
   createRenderPass();
   createDepthResources();
   createFrameBuffers();
   createSyncObjects();
+}
+
+VermicelliSwapChain::VermicelliSwapChain(vermicelli::VermicelliDevice &deviceRef, VkExtent2D windowExtent, bool verbose,
+                                         std::shared_ptr<VermicelliSwapChain> previous) : mDevice{deviceRef},
+                                                                                          mWindowExtent{windowExtent},
+                                                                                          mVerbose{verbose},
+                                                                                          mPreviousSwapChain{previous} {
+  init();
+
+  /// Clean up old swap chain since it's no longer needed
+  mPreviousSwapChain = nullptr;
 }
 
 VermicelliSwapChain::~VermicelliSwapChain() {
@@ -129,14 +144,14 @@ VkResult VermicelliSwapChain::submitCommandBuffers(
 void VermicelliSwapChain::createSwapChain() {
   SwapChainSupportDetails swapChainSupport = mDevice.getSwapChainSupport();
 
-  VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-  VkPresentModeKHR   presentMode   = chooseSwapPresentMode(swapChainSupport.presentModes);
-  VkExtent2D         extent        = chooseSwapExtent(swapChainSupport.capabilities);
+  VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.mFormats);
+  VkPresentModeKHR   presentMode   = chooseSwapPresentMode(swapChainSupport.mPresentModes);
+  VkExtent2D         extent        = chooseSwapExtent(swapChainSupport.mCapabilities);
 
-  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-  if (swapChainSupport.capabilities.maxImageCount > 0 &&
-      imageCount > swapChainSupport.capabilities.maxImageCount) {
-    imageCount = swapChainSupport.capabilities.maxImageCount;
+  uint32_t imageCount = swapChainSupport.mCapabilities.minImageCount + 1;
+  if (swapChainSupport.mCapabilities.maxImageCount > 0 &&
+      imageCount > swapChainSupport.mCapabilities.maxImageCount) {
+    imageCount = swapChainSupport.mCapabilities.maxImageCount;
   }
 
   VkSwapchainCreateInfoKHR createInfo = {};
@@ -151,9 +166,9 @@ void VermicelliSwapChain::createSwapChain() {
   createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
   QueueFamilyIndices indices              = mDevice.findPhysicalQueueFamilies();
-  uint32_t           queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
+  uint32_t           queueFamilyIndices[] = {indices.mGraphicsFamily, indices.mPresentFamily};
 
-  if (indices.graphicsFamily != indices.presentFamily) {
+  if (indices.mGraphicsFamily != indices.mPresentFamily) {
     createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
     createInfo.queueFamilyIndexCount = 2;
     createInfo.pQueueFamilyIndices   = queueFamilyIndices;
@@ -163,13 +178,13 @@ void VermicelliSwapChain::createSwapChain() {
     createInfo.pQueueFamilyIndices   = nullptr;  // Optional
   }
 
-  createInfo.preTransform   = swapChainSupport.capabilities.currentTransform;
+  createInfo.preTransform   = swapChainSupport.mCapabilities.currentTransform;
   createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
   createInfo.presentMode = presentMode;
   createInfo.clipped     = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = mPreviousSwapChain == nullptr ? VK_NULL_HANDLE : mPreviousSwapChain->mSwapChain;
 
   if (vkCreateSwapchainKHR(mDevice.device(), &createInfo, nullptr, &mSwapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
@@ -369,7 +384,7 @@ void VermicelliSwapChain::createSyncObjects() {
 VkSurfaceFormatKHR VermicelliSwapChain::chooseSwapSurfaceFormat(
         const std::vector<VkSurfaceFormatKHR> &availableFormats) {
   for (const auto &availableFormat: availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
     }

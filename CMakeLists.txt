@@ -35,7 +35,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-g -O2)
 add_link_options(-lXxf86vm -lXrandr -lXi)
 
-add_executable(vermicelli main.cpp application.h application.cpp vermicelli_window.h vermicelli_window.cpp vermicelli_pipeline.cpp vermicelli_pipeline.h vermicelli_device.cpp vermicelli_device.h vermicelli_swap_chain.cpp vermicelli_swap_chain.h)
+add_executable(vermicelli main.cpp application.cpp vermicelli_window.cpp vermicelli_pipeline.cpp vermicelli_device.cpp vermicelli_swap_chain.cpp vermicelli_model.cpp)
 
 if (THREADS_HAVE_PTHREAD_ARG)
     target_compile_options(vermicelli PUBLIC "-pthread")
@@ -50,4 +50,8 @@ add_dependencies(vermicelli shaders)
 
 if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
     add_compile_definitions(NDEBUG)
+    add_custom_command(TARGET vermicelli
+            POST_BUILD
+            COMMAND /bin/sh ${CMAKE_SOURCE_DIR}gen_documentation.sh
+            )
 endif ()

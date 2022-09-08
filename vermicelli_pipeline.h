@@ -23,25 +23,25 @@ struct PipelineConfigInfo {
 
     PipelineConfigInfo(const PipelineConfigInfo &) = delete;
 
-    VkViewport                             viewport;
-    VkRect2D                               scissor;
-    VkPipelineViewportStateCreateInfo      viewportInfo;
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
-    VkPipelineRasterizationStateCreateInfo rasterizationInfo;
-    VkPipelineMultisampleStateCreateInfo   multisampleInfo;
-    VkPipelineColorBlendAttachmentState    colorBlendAttachment;
-    VkPipelineColorBlendStateCreateInfo    colorBlendInfo;
-    VkPipelineDepthStencilStateCreateInfo  depthStencilInfo;
-    VkPipelineLayout                       pipelineLayout = nullptr;
-    VkRenderPass                           renderPass     = nullptr;
-    uint32_t                               subpass        = 0;
+    VkPipelineViewportStateCreateInfo      mViewportInfo;
+    VkPipelineInputAssemblyStateCreateInfo mInputAssemblyInfo;
+    VkPipelineRasterizationStateCreateInfo mRasterizationInfo;
+    VkPipelineMultisampleStateCreateInfo   mMultisampleInfo;
+    VkPipelineColorBlendAttachmentState    mColorBlendAttachment;
+    VkPipelineColorBlendStateCreateInfo    mColorBlendInfo;
+    VkPipelineDepthStencilStateCreateInfo  mDepthStencilInfo;
+    std::vector<VkDynamicState>            mDynamicStateEnables;
+    VkPipelineDynamicStateCreateInfo       mDynamicStateInfo;
+    VkPipelineLayout                       mPipelineLayout = nullptr;
+    VkRenderPass                           mRenderPass     = nullptr;
+    uint32_t                               mSubpass        = 0;
 };
 
 class VermicelliPipeline {
   VermicelliDevice &mDevice;
-  VkPipeline     mGraphicsPipeline;
-  VkShaderModule mVertShaderModule;
-  VkShaderModule mFragShaderModule;
+  VkPipeline       mGraphicsPipeline;
+  VkShaderModule   mVertShaderModule;
+  VkShaderModule   mFragShaderModule;
 
   static std::vector<char> readFile(const std::string &filePath);
 
@@ -58,11 +58,11 @@ public:
 
   VermicelliPipeline(const VermicelliPipeline &) = delete;
 
-  void operator=(const VermicelliPipeline &) = delete;
+  VermicelliPipeline operator=(const VermicelliPipeline &) = delete;
 
   void bind(VkCommandBuffer commandBuffer);
 
-  static void defaultPipelineConfigInfo(PipelineConfigInfo &configInfo, glm::u32vec2 dim);
+  static void defaultPipelineConfigInfo(PipelineConfigInfo &configInfo);
 };
 }
 

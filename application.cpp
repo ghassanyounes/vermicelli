@@ -13,8 +13,9 @@
 namespace vermicelli {
 
 Application::Application(const bool verbose) : mVerbose(verbose) {
+  loadModels();
   createPipelineLayout();
-  createPipeline();
+  recreateSwapChain();
   createCommandBuffers();
 }
 
@@ -30,7 +31,10 @@ void Application::run() {
       if (windowEvent.type == SDL_QUIT) {
         running = false;
         break;
-      }
+      } /*else if (windowEvent.type == SDL_WINDOWEVENT && windowEvent.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+        mWindow.mFrameBufferResized = true;
+        mWindow.mDim = {windowEvent.window.data1, windowEvent.window.data2};
+      }*/
       drawFrame();
     }
   }
@@ -51,16 +55,42 @@ void Application::createPipelineLayout() {
 }
 
 void Application::createPipeline() {
+  assert(mSwapChain != nullptr && "Cannot create pipeline before swap chain!");
+  assert(mPipelineLayout != nullptr && "Cannot create pipeline before pipeline layout!");
+
   PipelineConfigInfo pipelineConfig{};
-  VermicelliPipeline::defaultPipelineConfigInfo(pipelineConfig, mSwapChain.dim());
-  pipelineConfig.renderPass     = mSwapChain.getRenderPass();
-  pipelineConfig.pipelineLayout = mPipelineLayout;
+  VermicelliPipeline::defaultPipelineConfigInfo(pipelineConfig);
+  pipelineConfig.mRenderPass     = mSwapChain->getRenderPass();
+  pipelineConfig.mPipelineLayout = mPipelineLayout;
   mPipeline = std::make_unique<VermicelliPipeline>(mDevice, "shaders/simple_shader.vert.spv",
                                                    "shaders/simple_shader.frag.spv", pipelineConfig);
 }
 
+void Application::recreateSwapChain() {
+  auto extent = mWindow.getExtent();
+  while (extent.width == 0 || extent.height == 0) {
+    extent = mWindow.getExtent();
+    SDL_Event windowEvent;
+    SDL_WaitEvent(&windowEvent);
+  }
+
+  vkDeviceWaitIdle(mDevice.device());
+  if (mSwapChain == nullptr) {
+    mSwapChain = std::make_unique<VermicelliSwapChain>(mDevice, extent, mVerbose);
+  } else {
+    mSwapChain = std::make_unique<VermicelliSwapChain>(mDevice, extent, mVerbose, std::move(mSwapChain));
+    if (mSwapChain->imageCount() != mCommandBuffers.size()) {
+      freeCommandBuffers();
+      createCommandBuffers();
+    }
+  }
+
+  //FIXME: If render passes are compatible then do nothing instead of creating a new pipeline
+  createPipeline();
+}
+
 void Application::createCommandBuffers() {
-  mCommandBuffers.resize(mSwapChain.imageCount());
+  mCommandBuffers.resize(mSwapChain->imageCount());
   VkCommandBufferAllocateInfo allocateInfo{};
   allocateInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocateInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -70,55 +100,108 @@ void Application::createCommandBuffers() {
   if (vkAllocateCommandBuffers(mDevice.device(), &allocateInfo, mCommandBuffers.data()) != VK_SUCCESS) {
     throw std::runtime_error("Unable to allocate command buffers!");
   }
+}
 
-  for (int i = 0; i < mCommandBuffers.size(); ++i) {
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+void Application::recordCommandBuffer(int imageIndex) {
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-    if (vkBeginCommandBuffer(mCommandBuffers[i], &beginInfo) != VK_SUCCESS) {
-      throw std::runtime_error("Command buffer failed to begin recording");
-    }
-
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass        = mSwapChain.getRenderPass();
-    renderPassInfo.framebuffer       = mSwapChain.getFrameBuffer(i);
-    renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = mSwapChain.getSwapChainExtent();
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color        = {0.4f, 0.855f, 0.46f, 0.71f};
-    clearValues[1].depthStencil = {1.0f, 0};
-
-    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-    renderPassInfo.pClearValues    = clearValues.data();
-
-    vkCmdBeginRenderPass(mCommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    mPipeline->bind(mCommandBuffers[i]);
-    // Records a draw command to draw 3 vertices and only 1 instance
-    vkCmdDraw(mCommandBuffers[i], 3, 1, 0, 0);
-
-    vkCmdEndRenderPass(mCommandBuffers[i]);
-    if (vkEndCommandBuffer(mCommandBuffers[i]) != VK_SUCCESS) {
-      throw std::runtime_error("Failed to record command buffer");
-    }
-
+  if (vkBeginCommandBuffer(mCommandBuffers[imageIndex], &beginInfo) != VK_SUCCESS) {
+    throw std::runtime_error("Command buffer failed to begin recording");
   }
+
+  VkRenderPassBeginInfo renderPassInfo{};
+  renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+  renderPassInfo.renderPass        = mSwapChain->getRenderPass();
+  renderPassInfo.framebuffer       = mSwapChain->getFrameBuffer(imageIndex);
+  renderPassInfo.renderArea.offset = {0, 0};
+  renderPassInfo.renderArea.extent = mSwapChain->getSwapChainExtent();
+  std::array<VkClearValue, 2> clearValues{};
+  clearValues[0].color        = {0.1f, 0.1f, 0.1f, 1.0f};
+  clearValues[1].depthStencil = {1.0f, 0};
+
+  renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+  renderPassInfo.pClearValues    = clearValues.data();
+
+  vkCmdBeginRenderPass(mCommandBuffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+  VkViewport viewport{};
+  viewport.x        = 0.0f;
+  viewport.y        = 0.0f;
+  viewport.width    = static_cast<float>(mSwapChain->getSwapChainExtent().width);
+  viewport.height   = static_cast<float>(mSwapChain->getSwapChainExtent().height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+  VkRect2D scissor{{0, 0}, mSwapChain->getSwapChainExtent()};
+  vkCmdSetViewport(mCommandBuffers[imageIndex], 0, 1, &viewport);
+  vkCmdSetScissor(mCommandBuffers[imageIndex], 0, 1, &scissor);
+
+  mPipeline->bind(mCommandBuffers[imageIndex]);
+  mModel->bind(mCommandBuffers[imageIndex]);
+  mModel->draw(mCommandBuffers[imageIndex]);
+
+  vkCmdEndRenderPass(mCommandBuffers[imageIndex]);
+  if (vkEndCommandBuffer(mCommandBuffers[imageIndex]) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to record command buffer");
+  }
+
 }
 
 void Application::drawFrame() {
   uint32_t imageIndex;
-  auto     res = mSwapChain.acquireNextImage(&imageIndex);
+  auto     res = mSwapChain->acquireNextImage(&imageIndex);
 
-  ///<< FIXME: Will crash when resizing window as image resets, will be implemented;
+  if (res == VK_ERROR_OUT_OF_DATE_KHR) {
+    recreateSwapChain();
+    return;
+  }
+
   if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("Failed to acquire next mSwapChain image");
   }
 
-  res = mSwapChain.submitCommandBuffers(&mCommandBuffers[imageIndex], &imageIndex);
+  recordCommandBuffer(imageIndex);
+  res = mSwapChain->submitCommandBuffers(&mCommandBuffers[imageIndex], &imageIndex);
+  if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR || mWindow.wasWindowResized()) {
+    mWindow.resetWindowResizedFLag();
+    recreateSwapChain();
+    return;
+  }
+
   if (res != VK_SUCCESS) {
     throw std::runtime_error("Failed to present mSwapChain image");
   }
+}
+
+void Application::loadModels() {
+  std::vector<VermicelliModel::Vertex> vertices{
+          {{0.0,   -0.5},  {1.0f, 0.0f, 0.0f}},
+          {{0.25,  0.0},   {0.0f, 1.0f, 0.0f}},
+          {{-0.25, 0.0},   {0.0f, 0.0f, 1.0f}},
+          //
+          {{0.0,   0.5},   {1.0f, 0.0f, 0.0f}},
+          {{-0.5,  0.5},   {0.0f, 1.0f, 0.0f}},
+          {{-0.25, 0.0},   {0.0f, 0.0f, 1.0f}},
+          //
+          {{0.0,   0.5},   {1.0f, 0.0f, 0.0f}},
+          {{0.25,  0.0},   {0.0f, 1.0f, 0.0f}},
+          {{0.5,   0.5},   {0.0f, 0.0f, 1.0f}},
+          //
+          {{0,     -0.25}, {1.0f, 0.0f, 0.0f}},
+          {{0.25,  0.25},  {0.0f, 1.0f, 0.0f}},
+          {{-0.25, 0.25},  {0.0f, 0.0f, 1.0f}}
+  };
+
+  mModel = std::make_unique<VermicelliModel>(mDevice, vertices, mVerbose);
+}
+
+void Application::freeCommandBuffers() {
+  vkFreeCommandBuffers(
+          mDevice.device(),
+          mDevice.getCommandPool(),
+          static_cast<uint32_t>(mCommandBuffers.size()),
+          mCommandBuffers.data());
+  mCommandBuffers.clear();
 }
 
 }

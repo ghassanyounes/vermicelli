@@ -11,7 +11,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
-#include <unistd.h>
 #include <getopt.h>
 
 #include "application.h"
@@ -43,7 +42,7 @@ static struct option long_options[] = {
  */
 int main(int argc, char *argv[]) {
   int c;
-  while (1) {
+  while (true) {
     int option_index = 0;
     c = getopt_long(argc, argv, ":h", long_options, &option_index);
     if (c == -1) {
@@ -51,7 +50,7 @@ int main(int argc, char *argv[]) {
     }
     switch (c) {
       case 0:
-        if (long_options[option_index].flag != 0) {
+        if (long_options[option_index].flag) {
           break;
         }
         cout << "Option " << long_options[option_index].name << (optarg ? "with option " : "") << (optarg ? optarg : "")

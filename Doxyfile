@@ -573,7 +573,7 @@ HIDE_IN_BODY_DOCS      = NO
 INTERNAL_DOCS          = NO
 
 # With the correct setting of option CASE_SENSE_NAMES doxygen will better be
-# able to match the capabilities of the underlying filesystem. In case the
+# able to match the mCapabilities of the underlying filesystem. In case the
 # filesystem is case sensitive (i.e. it supports files in the same directory
 # whose names only differ in casing), the option must be set to YES to properly
 # deal with such files in case they appear in the input. For filesystems that

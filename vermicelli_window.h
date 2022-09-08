@@ -29,10 +29,16 @@ class VermicelliWindow {
   glm::u32vec2   mDim;
   std::string    mName;
   SDL2pp::Window mWindow;
+  bool           mFrameBufferResized = false;
 
   void initWindow();
 
+  static int frameBufferResizeCallback(void *userData, SDL_Event *event);
+
+  friend class Application;
+
 public:
+
   explicit VermicelliWindow(std::string name = APP_NAME, glm::u32vec2 dim = {800, 600});
 
   ~VermicelliWindow() = default;
@@ -46,6 +52,10 @@ public:
   SDL_Window *Get() { return mWindow.Get(); };
 
   VkExtent2D getExtent() { return {mDim.x, mDim.y}; }
+
+  bool wasWindowResized() { return mFrameBufferResized; }
+
+  void resetWindowResizedFLag() { mFrameBufferResized = false; }
 };
 
 }

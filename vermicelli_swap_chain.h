@@ -18,6 +18,7 @@
 // std lib headers
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace vermicelli {
 
@@ -26,6 +27,9 @@ public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   VermicelliSwapChain(VermicelliDevice &deviceRef, VkExtent2D windowExtent, bool verbose);
+
+  VermicelliSwapChain(VermicelliDevice &deviceRef, VkExtent2D windowExtent, bool verbose,
+                      std::shared_ptr<VermicelliSwapChain> previous);
 
   ~VermicelliSwapChain();
 
@@ -70,6 +74,8 @@ private:
 
   void createSyncObjects();
 
+  void init();
+
   // Helper functions
   VkSurfaceFormatKHR chooseSwapSurfaceFormat(
           const std::vector<VkSurfaceFormatKHR> &availableFormats);
@@ -94,7 +100,8 @@ private:
   VermicelliDevice &mDevice;
   VkExtent2D       mWindowExtent;
 
-  VkSwapchainKHR mSwapChain;
+  VkSwapchainKHR                       mSwapChain;
+  std::shared_ptr<VermicelliSwapChain> mPreviousSwapChain;
 
   std::vector<VkSemaphore> mImageAvailableSemaphores;
   std::vector<VkSemaphore> mRenderFinishedSemaphores;
