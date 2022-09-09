@@ -7,13 +7,15 @@
  *********************************************************************************************************************/
 
 #include "application.h"
+#include "vermicelli_functions.h"
+#include <glm/gtc/constants.hpp> // PI
 #include <stdexcept>
 #include <array>
 
 namespace vermicelli {
 
 Application::Application(const bool verbose) : mVerbose(verbose) {
-  loadModels();
+  loadGameObjects();
   createPipelineLayout();
   recreateSwapChain();
   createCommandBuffers();
@@ -24,6 +26,9 @@ Application::~Application() {
 }
 
 void Application::run() {
+  if (mVerbose) {
+    std::cout << "maxPushConstantSize = " << mDevice.mProperties.limits.maxPushConstantsSize << std::endl;
+  }
   bool running = true;
   while (running) {
     SDL_Event windowEvent;
@@ -31,10 +36,13 @@ void Application::run() {
       if (windowEvent.type == SDL_QUIT) {
         running = false;
         break;
-      } /*else if (windowEvent.type == SDL_WINDOWEVENT && windowEvent.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-        mWindow.mFrameBufferResized = true;
-        mWindow.mDim = {windowEvent.window.data1, windowEvent.window.data2};
-      }*/
+      } else if (windowEvent.type == SDL_KEYDOWN) {
+        switch (windowEvent.key.keysym.sym) {
+          case SDLK_ESCAPE:
+            running = false;
+            break;
+        }
+      }
       drawFrame();
     }
   }
@@ -42,12 +50,18 @@ void Application::run() {
 }
 
 void Application::createPipelineLayout() {
+
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+  pushConstantRange.offset     = 0;
+  pushConstantRange.size       = sizeof(SimplePushConstantData);
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipelineLayoutInfo.setLayoutCount         = 0;
   pipelineLayoutInfo.pSetLayouts            = nullptr;
-  pipelineLayoutInfo.pushConstantRangeCount = 0;
-  pipelineLayoutInfo.pPushConstantRanges    = nullptr;
+  pipelineLayoutInfo.pushConstantRangeCount = 1;
+  pipelineLayoutInfo.pPushConstantRanges    = &pushConstantRange;
 
   if (vkCreatePipelineLayout(mDevice.device(), &pipelineLayoutInfo, nullptr, &mPipelineLayout) != VK_SUCCESS) {
     throw std::runtime_error("failed to create pipeline layout!");
@@ -117,7 +131,7 @@ void Application::recordCommandBuffer(int imageIndex) {
   renderPassInfo.renderArea.offset = {0, 0};
   renderPassInfo.renderArea.extent = mSwapChain->getSwapChainExtent();
   std::array<VkClearValue, 2> clearValues{};
-  clearValues[0].color        = {0.1f, 0.1f, 0.1f, 1.0f};
+  clearValues[0].color        = {0.01f, 0.01f, 0.01f, 1.0f};
   clearValues[1].depthStencil = {1.0f, 0};
 
   renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
@@ -136,15 +150,31 @@ void Application::recordCommandBuffer(int imageIndex) {
   vkCmdSetViewport(mCommandBuffers[imageIndex], 0, 1, &viewport);
   vkCmdSetScissor(mCommandBuffers[imageIndex], 0, 1, &scissor);
 
-  mPipeline->bind(mCommandBuffers[imageIndex]);
-  mModel->bind(mCommandBuffers[imageIndex]);
-  mModel->draw(mCommandBuffers[imageIndex]);
+  renderGameObjects(mCommandBuffers[imageIndex]);
 
   vkCmdEndRenderPass(mCommandBuffers[imageIndex]);
   if (vkEndCommandBuffer(mCommandBuffers[imageIndex]) != VK_SUCCESS) {
     throw std::runtime_error("Failed to record command buffer");
   }
 
+}
+
+void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
+  mPipeline->bind(commandBuffer);
+  for (auto &obj: mGameObjects) {
+    obj.mTransform2d.mRotation = glm::mod(obj.mTransform2d.mRotation + 0.01f, glm::two_pi<float>());
+
+    SimplePushConstantData push{};
+    push.offset    = obj.mTransform2d.mTranslation;
+    push.color     = obj.mColor;
+    push.transform = obj.mTransform2d.mat2();
+
+    vkCmdPushConstants(commandBuffer, mPipelineLayout,
+                       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData),
+                       &push);
+    obj.mModel->bind(commandBuffer);
+    obj.mModel->draw(commandBuffer);
+  }
 }
 
 void Application::drawFrame() {
@@ -173,26 +203,34 @@ void Application::drawFrame() {
   }
 }
 
-void Application::loadModels() {
+void Application::loadGameObjects() {
   std::vector<VermicelliModel::Vertex> vertices{
-          {{0.0,   -0.5},  {1.0f, 0.0f, 0.0f}},
-          {{0.25,  0.0},   {0.0f, 1.0f, 0.0f}},
-          {{-0.25, 0.0},   {0.0f, 0.0f, 1.0f}},
+          {{0.0,    -0.5}, {0.0f,  1.0f,  1.0f}},
+          {{0.25,   0.0},  {1.0f,  0.0f,  1.0f}},
+          {{-0.25,  0.0},  {1.0f,  1.0f,  0.0f}},
           //
-          {{0.0,   0.5},   {1.0f, 0.0f, 0.0f}},
-          {{-0.5,  0.5},   {0.0f, 1.0f, 0.0f}},
-          {{-0.25, 0.0},   {0.0f, 0.0f, 1.0f}},
+          {{0.0,    0.5},  {1.0f,  0.0f,  0.0f}},
+          {{-0.5,   0.5},  {0.0f,  1.0f,  0.0f}},
+          {{-0.25,  0.0},  {0.0f,  0.0f,  1.0f}},
           //
-          {{0.0,   0.5},   {1.0f, 0.0f, 0.0f}},
-          {{0.25,  0.0},   {0.0f, 1.0f, 0.0f}},
-          {{0.5,   0.5},   {0.0f, 0.0f, 1.0f}},
+          {{0.0,    0.5},  {0.5f,  0.25f, 0.0f}},
+          {{0.25,   0.0},  {0.0f,  0.5f,  0.25f}},
+          {{0.5,    0.5},  {0.25f, 0.0f,  0.5f}},
           //
-          {{0,     -0.25}, {1.0f, 0.0f, 0.0f}},
-          {{0.25,  0.25},  {0.0f, 1.0f, 0.0f}},
-          {{-0.25, 0.25},  {0.0f, 0.0f, 1.0f}}
+          {{0,      0},    {0.0f,  0.0f,  0.0f}},
+          {{0.125,  0.25}, {0.5f,  0.5f,  0.5f}},
+          {{-0.125, 0.25}, {1.0f,  1.0f,  1.0f}}
   };
 
-  mModel = std::make_unique<VermicelliModel>(mDevice, vertices, mVerbose);
+  auto Model    = std::make_shared<VermicelliModel>(mDevice, vertices, mVerbose);
+  auto Triangle = VermicelliGameObject::createGameObject();
+  Triangle.mModel                    = Model;
+  Triangle.mColor                    = color::hex("1f7a4d");
+  Triangle.mTransform2d.mTranslation = {0.0f, 0.0f};
+  Triangle.mTransform2d.mScale       = {1.0f, 1.0f};
+  Triangle.mTransform2d.mRotation    = 0.25f * glm::two_pi<float>();
+
+  mGameObjects.push_back(std::move(Triangle));
 }
 
 void Application::freeCommandBuffers() {

@@ -10,16 +10,26 @@
 #define __VERMICELLI_APPLICATION_H__
 #pragma once
 
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
+#include <glm/glm.hpp>
 #include "vermicelli_window.h"
 #include "vermicelli_pipeline.h"
 #include "vermicelli_device.h"
 #include "vermicelli_swap_chain.h"
-#include "vermicelli_model.h"
-
+#include "vermicelli_game_object.h"
 #include <memory>
 #include <vector>
 
 namespace vermicelli {
+
+struct SimplePushConstantData {
+    glm::mat2             transform{1.f};
+    glm::vec2             offset;
+    alignas(16) glm::vec3 color;
+};
 
 class Application {
   VermicelliWindow                     mWindow{"Vermicelli", mDim};
@@ -29,7 +39,7 @@ class Application {
   std::unique_ptr<VermicelliPipeline>  mPipeline;
   VkPipelineLayout                     mPipelineLayout;
   std::vector<VkCommandBuffer>         mCommandBuffers;
-  std::unique_ptr<VermicelliModel>     mModel;
+  std::vector<VermicelliGameObject>    mGameObjects;
 
   void createPipelineLayout();
 
@@ -41,11 +51,13 @@ class Application {
 
   void drawFrame();
 
-  void loadModels();
+  void loadGameObjects();
 
   void recreateSwapChain();
 
   void recordCommandBuffer(int imageIndex);
+
+  void renderGameObjects(VkCommandBuffer commandBuffer);
 
 public:
   explicit Application(bool verbose);
