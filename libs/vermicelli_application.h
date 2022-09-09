@@ -6,8 +6,8 @@
  * Copyright (c) 2022 Ghassan Younes. All rights reserved.
  *********************************************************************************************************************/
 
-#ifndef __VERMICELLI_APPLICATION_H__
-#define __VERMICELLI_APPLICATION_H__
+#ifndef __VERMICELLI_VERMICELLI_APPLICATION_H__
+#define __VERMICELLI_VERMICELLI_APPLICATION_H__
 #pragma once
 
 
@@ -76,4 +76,4 @@ public:
 
 }
 
-#endif //__VERMICELLI_APPLICATION_H__
+#endif //__VERMICELLI_VERMICELLI_APPLICATION_H__

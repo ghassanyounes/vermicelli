@@ -6,7 +6,7 @@
  * Copyright (c) 2022 Ghassan Younes. All rights reserved.
  *********************************************************************************************************************/
 
-#include "application.h"
+#include "vermicelli_application.h"
 #include "vermicelli_functions.h"
 #include <glm/gtc/constants.hpp> // PI
 #include <stdexcept>
