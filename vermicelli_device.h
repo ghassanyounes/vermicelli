@@ -82,7 +82,7 @@ public:
   const bool mEnableValidationLayers = true;
 #endif
 
-  explicit VermicelliDevice(VermicelliWindow &window, const bool verbose);
+  explicit VermicelliDevice(VermicelliWindow &window, bool verbose);
 
   ~VermicelliDevice();
 

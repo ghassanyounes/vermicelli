@@ -14,6 +14,7 @@
 #include <getopt.h>
 
 #include "application.h"
+#include "vermicelli_functions.h"
 
 using std::cout, std::cerr, std::endl;
 
@@ -38,7 +39,7 @@ static struct option long_options[] = {
  * @return
  *  On success, EXIT_SUCCESS (0)
  *  On failure, EXIT_FAILURE (1)
- *  as defined by <cstdlib>
+ *  as defined by cstdlib
  */
 int main(int argc, char *argv[]) {
   int c;
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
         cout << "Option " << long_options[option_index].name << (optarg ? "with option " : "") << (optarg ? optarg : "")
              << endl;
       case 'h':
-        cout << "Vermicelli, a Vulkan Renderer and Engine built on SDL2" << endl;
+        vermicelli::helpMenu();
         return EXIT_SUCCESS;
       case '?':
         cout << "Option -" << static_cast<char>(optopt) << " is unknown." << endl
