@@ -13,7 +13,7 @@
 #include <vector>
 #include <getopt.h>
 
-#include "application.h"
+#include "vermicelli_application.h"
 #include "vermicelli_functions.h"
 
 using std::cout, std::cerr, std::endl;
