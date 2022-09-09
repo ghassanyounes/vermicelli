@@ -1,4 +1,5 @@
 # vermicelli
+### An engine built on Vulkan and SDL!
 
 Working with Vulkan and SDL! - Current stage: following online tutorials until I get the hang of things
 
