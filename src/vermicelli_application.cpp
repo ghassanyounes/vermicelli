@@ -32,6 +32,7 @@ void Application::run() {
   bool running = true;
   while (running) {
     SDL_Event windowEvent;
+    /// FIXME: Something about pollEvent makes the window wait for user input to redraw ... not sure how to surpass it
     while (SDL_PollEvent(&windowEvent)) {
       if (windowEvent.type == SDL_QUIT) {
         running = false;
@@ -85,6 +86,7 @@ void Application::recreateSwapChain() {
   while (extent.width == 0 || extent.height == 0) {
     extent = mWindow.getExtent();
     SDL_Event windowEvent;
+    ///< This is essentially creating a callback for each window event - see `vermicelli_window.cpp` for more info.
     SDL_WaitEvent(&windowEvent);
   }
 
