@@ -8,7 +8,7 @@
 
 #include "vermicelli_functions.h"
 ///FIXME: Change to <format> when it's implemented by clang
-#include <fmt/core.h>
+#include "fmt/core.h"
 
 namespace vermicelli {
 

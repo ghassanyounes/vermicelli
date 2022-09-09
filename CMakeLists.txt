@@ -49,11 +49,9 @@ add_spirv_modules(shaders
 
 add_compile_options(-g -O2)
 
-add_executable(
-        vermicelli
-        main.cpp application.cpp vermicelli_window.cpp vermicelli_pipeline.cpp vermicelli_device.cpp
-        vermicelli_swap_chain.cpp vermicelli_model.cpp vermicelli_functions.cpp
-)
+file(GLOB SOURCES src/*.cpp)
+
+add_executable(vermicelli ${SOURCES})
 
 if (THREADS_HAVE_PTHREAD_ARG)
     target_compile_options(vermicelli PUBLIC "-pthread")
@@ -61,6 +59,8 @@ endif ()
 if (CMAKE_THREAD_LIBS_INIT)
     target_link_libraries(vermicelli "${CMAKE_THREAD_LIBS_INIT}")
 endif ()
+
+include_directories(libs/)
 
 target_link_libraries(
         vermicelli
