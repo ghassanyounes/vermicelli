@@ -1,16 +1,33 @@
 cmake_minimum_required(VERSION 3.23)
 project(vermicelli)
 
+set(CMAKE_CXX_STANDARD 20)
+
 include(FindPkgConfig)
-find_package(SDL2pp REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 find_package(glm REQUIRED)
-find_package(X11 REQUIRED)
+#find_package(X11 REQUIRED)
+#add_link_options(-lXxf86vm -lXrandr -lXi)
 
-# Automatically download cmake-spirv with FetchContent
+# Automatically download stuff with FetchContent
 include(FetchContent)
+
+set(SDL2PP_WITH_IMAGE ON) # for SDL_image support
+set(SDL2PP_WITH_MIXER ON) # for SDL_mixer support
+set(SDL2PP_WITH_TTF ON)   # for SDL_ttf support
+FetchContent_Declare(SDL2pp
+        GIT_REPOSITORY https://github.com/libSDL2pp/libSDL2pp.git
+        GIT_TAG origin/master
+        )
+FetchContent_MakeAvailable(SDL2pp)
+
+FetchContent_Declare(fmt
+        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+        GIT_TAG origin/master
+        )
+FetchContent_MakeAvailable(fmt)
 
 FetchContent_Declare(cmake-spirv
         GIT_REPOSITORY https://github.com/liliolett/cmake-spirv.git
@@ -30,12 +47,13 @@ add_spirv_modules(shaders
         BINARY_DIR shaders/
         SOURCES simple_shader.vert simple_shader.frag)
 
-set(CMAKE_CXX_STANDARD 20)
-
 add_compile_options(-g -O2)
-add_link_options(-lXxf86vm -lXrandr -lXi)
 
-add_executable(vermicelli main.cpp application.cpp vermicelli_window.cpp vermicelli_pipeline.cpp vermicelli_device.cpp vermicelli_swap_chain.cpp vermicelli_model.cpp)
+add_executable(
+        vermicelli
+        main.cpp application.cpp vermicelli_window.cpp vermicelli_pipeline.cpp vermicelli_device.cpp
+        vermicelli_swap_chain.cpp vermicelli_model.cpp vermicelli_functions.cpp
+)
 
 if (THREADS_HAVE_PTHREAD_ARG)
     target_compile_options(vermicelli PUBLIC "-pthread")
@@ -44,7 +62,12 @@ if (CMAKE_THREAD_LIBS_INIT)
     target_link_libraries(vermicelli "${CMAKE_THREAD_LIBS_INIT}")
 endif ()
 
-target_link_libraries(vermicelli glfw SDL2pp::SDL2pp glm ${CMAKE_DL_LIBS} ${glm_LIBRARIES} ${SDL2pp_LIBRARIES} ${SDL2_LIBRARIES} ${Vulkan_LIBRARIES} ${Threads_LIBRARIES})
+target_link_libraries(
+        vermicelli
+        SDL2pp::SDL2pp glm fmt::fmt
+        ${CMAKE_DL_LIBS} ${glm_LIBRARIES} ${SDL2pp_LIBRARIES} ${SDL2_LIBRARIES} ${Vulkan_LIBRARIES}
+        ${Threads_LIBRARIES}
+)
 
 add_dependencies(vermicelli shaders)
 
