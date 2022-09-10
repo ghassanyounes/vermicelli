@@ -59,7 +59,7 @@ public:
 
   VkResult acquireNextImage(uint32_t *imageIndex);
 
-  VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
+  VkResult submitCommandBuffers(const VkCommandBuffer *buffers, const uint32_t *imageIndex);
 
 private:
   void createSwapChain();
@@ -81,7 +81,7 @@ private:
           const std::vector<VkSurfaceFormatKHR> &availableFormats);
 
   VkPresentModeKHR chooseSwapPresentMode(
-          const std::vector<VkPresentModeKHR> &availablePresentModes);
+          const std::vector<VkPresentModeKHR> &availablePresentModes) const;
 
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 

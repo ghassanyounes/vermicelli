@@ -9,11 +9,9 @@
 #include "vermicelli_swap_chain.h"
 // std
 #include <array>
-#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <limits>
-#include <set>
 #include <stdexcept>
 
 namespace vermicelli {
@@ -94,7 +92,7 @@ VkResult VermicelliSwapChain::acquireNextImage(uint32_t *imageIndex) {
 }
 
 VkResult VermicelliSwapChain::submitCommandBuffers(
-        const VkCommandBuffer *buffers, uint32_t *imageIndex) {
+        const VkCommandBuffer *buffers, const uint32_t *imageIndex) {
   if (mImagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
     vkWaitForFences(mDevice.device(), 1, &mImagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
   }
@@ -394,24 +392,21 @@ VkSurfaceFormatKHR VermicelliSwapChain::chooseSwapSurfaceFormat(
 }
 
 VkPresentModeKHR VermicelliSwapChain::chooseSwapPresentMode(
-        const std::vector<VkPresentModeKHR> &availablePresentModes) {
+        const std::vector<VkPresentModeKHR> &availablePresentModes) const {
   for (const auto &availablePresentMode: availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+    if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
+      //if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      // Mailbox can be better, but it was going too fast, so I switched it to vsync (fifo)
       if (mVerbose) {
-        std::cout << "Present mode: Mailbox" << std::endl;
+        std::cout << "Present mode: "
+                  << ((availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) ? "Mailbox" : "V-Sync") << std::endl;
       }
       return availablePresentMode;
     }
   }
-
-  // for (const auto &availablePresentMode : availablePresentModes) {
-  //   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-  //     std::cout << "Present mode: Immediate" << std::endl;
-  //     return availablePresentMode;
-  //   }
-  // }
-
-  std::cout << "Present mode: V-Sync" << std::endl;
+  if (mVerbose) {
+    std::cout << "Present mode: V-Sync" << std::endl;
+  }
   return VK_PRESENT_MODE_FIFO_KHR;
 }
 
