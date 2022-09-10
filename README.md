@@ -1,7 +1,7 @@
 # vermicelli
 
 ---
-![version](https://img.shields.io/badge/dynamic/json?logo=linux&color=green&label=Latest%20Build&prefix=v&query=version&suffix=alpha&url=https%3A%2F%2Fraw.githubusercontent.com%2Fghassanyounes%2Fvermicelli%2Fmaster%status.json)
+![version](https://img.shields.io/badge/dynamic/json?logo=linux&color=green&label=Latest%20Build&prefix=v&query=version&suffix=alpha&url=https%3A%2F%2Fraw.githubusercontent.com%2Fghassanyounes%2Fvermicelli%2Fmaster%2Fstatus.json)
 
 ### An engine built on Vulkan and SDL!
 
