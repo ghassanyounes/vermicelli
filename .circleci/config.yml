@@ -2,14 +2,20 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+machine:
+  timezone:
+    America/Los_Angeles
+  environment:
+    PATH: "/home/ubuntu/cmake-3.24.0-linux-x86_64/bin:$PATH"
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  say-hello:
+  build_base:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
-      - image: cimg/base:stable
+      - image: ubuntu-2004-cuda-11.4:202110-01
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
@@ -23,4 +29,16 @@ jobs:
 workflows:
   say-hello-workflow:
     jobs:
-      - say-hello
+      - build_base
+
+dependencies:
+  cache_directories:
+    - ~/cmake-3.24.0-linux-x86_64
+  override:
+    - >
+      if [ ! -d ~/cmake-3.24.0-linux-x86_64 ]; then
+        echo "No cache - building CMake:
+        cd ~ && wget --quiet https://cmake.org/files/v3.24/cmake-3.24.0-linux-x86_64.tar.gz && tar -xvf cmake-3.24.0-linux-x86_64.tar.gz
+      else
+        echo "Cached CMake found"
+      fi
