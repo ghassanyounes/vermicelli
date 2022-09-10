@@ -1,0 +1,13 @@
+{
+  "name": "vermicelli",
+  "version": "0.0.1",
+  "dependencies": {
+    "cmake": "https://cmake.org/",
+    "Vulkan": "https://www.vulkan.org/",
+    "SDL2": "https://libsdl.org/",
+    "SDL2pp": "https://github.com/libSDL2pp/libSDL2pp",
+    "glm": "https://github.com/g-truc/glm",
+    "cmake-spirv": "https://github.com/liliolett/cmake-spirv",
+    "fmt": "https://github.com/fmtlib/fmt"
+  }
+}
