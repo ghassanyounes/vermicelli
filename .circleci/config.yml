@@ -17,6 +17,8 @@ jobs:
       - run:
           name: "Say hello"
           command: "echo Hello, World!"
+      - store_artifacts:
+          path: ~/cmake-3.24.0-linux-x86_64
 
 machine:
 
