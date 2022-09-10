@@ -2,20 +2,14 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-machine:
-  timezone:
-    America/Los_Angeles
-  environment:
-    PATH: "/home/ubuntu/cmake-3.24.0-linux-x86_64/bin:$PATH"
-
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   build_base:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
-      - image: ubuntu-2004-cuda-11.4:202110-01
+    machine:
+      image: ubuntu-2004-cuda-11.4:202110-01
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
@@ -24,10 +18,12 @@ jobs:
           name: "Say hello"
           command: "echo Hello, World!"
 
+machine:
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  build_base-workflow:
     jobs:
       - build_base
 
