@@ -32,8 +32,7 @@ void Application::run() {
   bool running = true;
   while (running) {
     SDL_Event windowEvent;
-    /// FIXME: Something about pollEvent makes the window wait for user input to redraw ... not sure how to surpass it
-    while (SDL_PollEvent(&windowEvent)) {
+    if (SDL_PollEvent(&windowEvent)) {
       if (windowEvent.type == SDL_QUIT) {
         running = false;
         break;
@@ -44,8 +43,8 @@ void Application::run() {
             break;
         }
       }
-      drawFrame();
     }
+    drawFrame();
   }
   vkDeviceWaitIdle(mDevice.device());
 }
