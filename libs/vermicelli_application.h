@@ -16,48 +16,22 @@
 
 #include <glm/glm.hpp>
 #include "vermicelli_window.h"
-#include "vermicelli_pipeline.h"
 #include "vermicelli_device.h"
-#include "vermicelli_swap_chain.h"
+#include "vermicelli_renderer.h"
 #include "vermicelli_game_object.h"
 #include <memory>
 #include <vector>
 
 namespace vermicelli {
 
-struct SimplePushConstantData {
-    glm::mat2             transform{1.f};
-    glm::vec2             offset;
-    alignas(16) glm::vec3 color;
-};
-
 class Application {
-  VermicelliWindow                     mWindow{"Vermicelli", mDim};
-  bool                                 mVerbose;
-  VermicelliDevice                     mDevice{mWindow, mVerbose};
-  std::unique_ptr<VermicelliSwapChain> mSwapChain;
-  std::unique_ptr<VermicelliPipeline>  mPipeline;
-  VkPipelineLayout                     mPipelineLayout;
-  std::vector<VkCommandBuffer>         mCommandBuffers;
-  std::vector<VermicelliGameObject>    mGameObjects;
-
-  void createPipelineLayout();
-
-  void createPipeline();
-
-  void createCommandBuffers();
-
-  void freeCommandBuffers();
-
-  void drawFrame();
+  VermicelliWindow                  mWindow{"Vermicelli", mDim};
+  bool                              mVerbose;
+  VermicelliDevice                  mDevice{mWindow, mVerbose};
+  VermicelliRenderer                mRenderer{mWindow, mDevice, mVerbose};
+  std::vector<VermicelliGameObject> mGameObjects;
 
   void loadGameObjects();
-
-  void recreateSwapChain();
-
-  void recordCommandBuffer(int imageIndex);
-
-  void renderGameObjects(VkCommandBuffer commandBuffer);
 
 public:
   explicit Application(bool verbose);

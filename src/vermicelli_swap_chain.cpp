@@ -308,7 +308,8 @@ void VermicelliSwapChain::createFrameBuffers() {
 }
 
 void VermicelliSwapChain::createDepthResources() {
-  VkFormat   depthFormat     = findDepthFormat();
+  VkFormat depthFormat = findDepthFormat();
+  mSwapChainDepthFormat = depthFormat;
   VkExtent2D swapChainExtent = getSwapChainExtent();
 
   mDepthImages.resize(imageCount());
