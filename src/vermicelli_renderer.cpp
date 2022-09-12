@@ -44,6 +44,7 @@ void VermicelliRenderer::recreateSwapChain() {
       // Fixme: Create callback function notifying the app that a new incompatible render pass has been created
     }
   }
+
 }
 
 void VermicelliRenderer::createCommandBuffers() {
@@ -106,7 +107,7 @@ void VermicelliRenderer::endFrame() {
     throw std::runtime_error("Failed to present mSwapChain image");
   }
   mIsFrameStarted    = false;
-  mCurrentImageIndex = (mCurrentFrameIndex + 1) % VermicelliSwapChain::MAX_FRAMES_IN_FLIGHT;
+  mCurrentFrameIndex = (mCurrentFrameIndex + 1) % VermicelliSwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
 void VermicelliRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer) {
