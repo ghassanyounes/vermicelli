@@ -37,7 +37,7 @@ std::vector<VkVertexInputBindingDescription> VermicelliModel::Vertex::getBinding
 
 std::vector<VkVertexInputAttributeDescription> VermicelliModel::Vertex::getAttributeDescriptions() {
   return {
-          {0, 0, VK_FORMAT_R32G32_SFLOAT,    offsetof(Vertex, mPosition)}, // position
+          {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, mPosition)}, // position
           {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, mColor)}     // color
   };
 }

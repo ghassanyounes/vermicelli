@@ -28,7 +28,7 @@ class VermicelliModel {
 
 public:
   struct Vertex {
-      glm::vec2 mPosition;
+      glm::vec3 mPosition;
       glm::vec3 mColor;
 
       static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();

@@ -59,34 +59,75 @@ void Application::run() {
   vkDeviceWaitIdle(mDevice.device());
 }
 
-void Application::loadGameObjects() {
+// temporary helper function, creates a 1x1x1 cube centered at offset
+std::unique_ptr<VermicelliModel> createCubeModel(VermicelliDevice &device, glm::vec3 offset, bool verbose) {
   std::vector<VermicelliModel::Vertex> vertices{
-          {{0.0,    -0.5}, {0.0f,  1.0f,  1.0f}},
-          {{0.25,   0.0},  {1.0f,  0.0f,  1.0f}},
-          {{-0.25,  0.0},  {1.0f,  1.0f,  0.0f}},
-          //
-          {{0.0,    0.5},  {1.0f,  0.0f,  0.0f}},
-          {{-0.5,   0.5},  {0.0f,  1.0f,  0.0f}},
-          {{-0.25,  0.0},  {0.0f,  0.0f,  1.0f}},
-          //
-          {{0.0,    0.5},  {0.5f,  0.25f, 0.0f}},
-          {{0.25,   0.0},  {0.0f,  0.5f,  0.25f}},
-          {{0.5,    0.5},  {0.25f, 0.0f,  0.5f}},
-          //
-          {{0,      0},    {0.0f,  0.0f,  0.0f}},
-          {{0.125,  0.25}, {0.5f,  0.5f,  0.5f}},
-          {{-0.125, 0.25}, {1.0f,  1.0f,  1.0f}}
+
+          // left face (white)
+          {{-.5f, -.5f, -.5f},  {.9f, .9f, .9f}},
+          {{-.5f, .5f,  .5f},   {.9f, .9f, .9f}},
+          {{-.5f, -.5f, .5f},   {.9f, .9f, .9f}},
+          {{-.5f, -.5f, -.5f},  {.9f, .9f, .9f}},
+          {{-.5f, .5f,  -.5f},  {.9f, .9f, .9f}},
+          {{-.5f, .5f,  .5f},   {.9f, .9f, .9f}},
+
+          // right face (yellow)
+          {{.5f,  -.5f, -.5f},  {.8f, .8f, .1f}},
+          {{.5f,  .5f,  .5f},   {.8f, .8f, .1f}},
+          {{.5f,  -.5f, .5f},   {.8f, .8f, .1f}},
+          {{.5f,  -.5f, -.5f},  {.8f, .8f, .1f}},
+          {{.5f,  .5f,  -.5f},  {.8f, .8f, .1f}},
+          {{.5f,  .5f,  .5f},   {.8f, .8f, .1f}},
+
+          // top face (orange, remember y axis points down)
+          {{-.5f, -.5f, -.5f},  {.9f, .6f, .1f}},
+          {{.5f,  -.5f, .5f},   {.9f, .6f, .1f}},
+          {{-.5f, -.5f, .5f},   {.9f, .6f, .1f}},
+          {{-.5f, -.5f, -.5f},  {.9f, .6f, .1f}},
+          {{.5f,  -.5f, -.5f},  {.9f, .6f, .1f}},
+          {{.5f,  -.5f, .5f},   {.9f, .6f, .1f}},
+
+          // bottom face (red)
+          {{-.5f, .5f,  -.5f},  {.8f, .1f, .1f}},
+          {{.5f,  .5f,  .5f},   {.8f, .1f, .1f}},
+          {{-.5f, .5f,  .5f},   {.8f, .1f, .1f}},
+          {{-.5f, .5f,  -.5f},  {.8f, .1f, .1f}},
+          {{.5f,  .5f,  -.5f},  {.8f, .1f, .1f}},
+          {{.5f,  .5f,  .5f},   {.8f, .1f, .1f}},
+
+          // nose face (blue)
+          {{-.5f, -.5f, 0.5f},  {.1f, .1f, .8f}},
+          {{.5f,  .5f,  0.5f},  {.1f, .1f, .8f}},
+          {{-.5f, .5f,  0.5f},  {.1f, .1f, .8f}},
+          {{-.5f, -.5f, 0.5f},  {.1f, .1f, .8f}},
+          {{.5f,  -.5f, 0.5f},  {.1f, .1f, .8f}},
+          {{.5f,  .5f,  0.5f},  {.1f, .1f, .8f}},
+
+          // tail face (green)
+          {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+          {{.5f,  .5f,  -0.5f}, {.1f, .8f, .1f}},
+          {{-.5f, .5f,  -0.5f}, {.1f, .8f, .1f}},
+          {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+          {{.5f,  -.5f, -0.5f}, {.1f, .8f, .1f}},
+          {{.5f,  .5f,  -0.5f}, {.1f, .8f, .1f}},
+
   };
+  for (auto                            &v: vertices) {
+    v.mPosition += offset;
+  }
+  return std::make_unique<VermicelliModel>(device, vertices, verbose);
+}
 
-  auto Model    = std::make_shared<VermicelliModel>(mDevice, vertices, mVerbose);
-  auto Triangle = VermicelliGameObject::createGameObject();
-  Triangle.mModel                    = Model;
-  Triangle.mColor                    = color::hex("1f7a4d");
-  Triangle.mTransform2d.mTranslation = {0.0f, 0.0f};
-  Triangle.mTransform2d.mScale       = {1.0f, 1.0f};
-  Triangle.mTransform2d.mRotation    = 0.25f * glm::two_pi<float>();
 
-  mGameObjects.push_back(std::move(Triangle));
+void Application::loadGameObjects() {
+  std::shared_ptr<VermicelliModel> model = createCubeModel(mDevice, {0.0f, 0.0f, 0.0f}, mVerbose);
+
+  auto cube = VermicelliGameObject::createGameObject();
+  cube.mModel                  = model;
+  cube.mTransform.mTranslation = {0.0f, 0.0f, 0.5f};
+  cube.mTransform.mScale       = {0.5f, 0.5f, 0.5f};
+
+  mGameObjects.push_back(std::move(cube));
 }
 
 }

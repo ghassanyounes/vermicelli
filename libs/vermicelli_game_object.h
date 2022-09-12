@@ -12,28 +12,34 @@
 #pragma once
 
 #include "vermicelli_model.h"
+#include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 
 namespace vermicelli {
 
-struct Transform2dComponent {
-    glm::vec2 mTranslation{}; ///< Position Offset
-    glm::vec2 mScale{1.0f, 1.0f}; ///< Object scale
-    float     mRotation; ///< Object rotation
-    glm::mat2 mat2() {
-      const float s = glm::sin(mRotation);
-      const float c = glm::cos(mRotation);
-      // mat2 constructor takes columns, not rows!
-      glm::mat2   scaleMat{
-              {mScale.x, 0.0f},
-              {0.0f,     mScale.y}
-      };
-      glm::mat2   rotMat{
-              {c,  s},
-              {-s, c}
-      };
-      // Remember that direction of matrix multiplication matters!
-      return rotMat * scaleMat;
+struct TransformComponent {
+    glm::vec3 mTranslation{}; ///< Position Offset
+    glm::vec3 mScale{1.0f, 1.0f, 1.0f}; ///< Object scale
+    glm::vec3 mRotation{}; ///< Object rotation
+    glm::mat4 mat4() {
+      const float c3 = glm::cos(mRotation.z);
+      const float s3 = glm::sin(mRotation.z);
+      const float c2 = glm::cos(mRotation.x);
+      const float s2 = glm::sin(mRotation.x);
+      const float c1 = glm::cos(mRotation.y);
+      const float s1 = glm::sin(mRotation.y);
+      /* REMEMBER: THIS IS COLUMN MAJOR; this looks like: when interpreted mathematically
+       * This follows the Y-X-Z rotation
+       Scale x * (c1 * c3 + s1 * s2 * s3), scale.y * (c3 * s1 * s2 - c1 * s3) , scale.z * (c2 * s1), transform x
+       Scale x * (c2 * s3)               , scale.y * (c2 * c3)                , scale.z * (-s2)    , transform y
+       Scale x * (c1 * s2 * s3 - c3 * s1), scale.y * (c1 * c3 * s2 + s1 * s3) , scale.z * (c1 * c2), transform z
+       0                                 , 0                                  , 0                  , 1
+      */
+      return glm::mat4{
+              {mScale.x * (c1 * c3 + s1 * s2 * s3), mScale.x * (c2 * s3), mScale.x * (c1 * s2 * s3 - c3 * s1), 0.0f,},
+              {mScale.y * (c3 * s1 * s2 - c1 * s3), mScale.y * (c2 * c3), mScale.y * (c1 * c3 * s2 + s1 * s3), 0.0f,},
+              {mScale.z * (c2 * s1),                mScale.z * (-s2),     mScale.z * (c1 * c2),                0.0f,},
+              {mTranslation.x,                      mTranslation.y,       mTranslation.z,                      1.0f}};
     }
 };
 
@@ -58,7 +64,7 @@ public:
 
   std::shared_ptr<VermicelliModel> mModel{};
   glm::vec3                        mColor{};
-  Transform2dComponent             mTransform2d{};
+  TransformComponent               mTransform{};
 
 private:
   explicit VermicelliGameObject(id_t objID) : mID{objID} {}

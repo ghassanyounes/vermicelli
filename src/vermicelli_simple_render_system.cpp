@@ -16,8 +16,7 @@
 namespace vermicelli {
 
 struct SimplePushConstantData {
-    glm::mat2             transform{1.f};
-    glm::vec2             offset;
+    glm::mat4             transform{1.f};
     alignas(16) glm::vec3 color;
 };
 
@@ -65,12 +64,12 @@ void VermicelliSimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuff
                                                      std::vector<VermicelliGameObject> &gameObjects) {
   mPipeline->bind(commandBuffer);
   for (auto &obj: gameObjects) {
-    obj.mTransform2d.mRotation = glm::mod(obj.mTransform2d.mRotation + 0.01f, glm::two_pi<float>());
+    obj.mTransform.mRotation.y = glm::mod(obj.mTransform.mRotation.y + 0.01f, glm::two_pi<float>());
+    obj.mTransform.mRotation.x = glm::mod(obj.mTransform.mRotation.x + 0.005f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    push.offset    = obj.mTransform2d.mTranslation;
     push.color     = obj.mColor;
-    push.transform = obj.mTransform2d.mat2();
+    push.transform = obj.mTransform.mat4();
 
     vkCmdPushConstants(commandBuffer, mPipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData),
