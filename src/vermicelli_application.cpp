@@ -7,11 +7,17 @@
  *********************************************************************************************************************/
 
 #include "vermicelli_application.h"
+#include "vermicelli_camera.h"
 #include "vermicelli_simple_render_system.h"
 #include "vermicelli_functions.h"
+#include "vermicelli_keyboard_input.h"
 #include <glm/gtc/constants.hpp> // PI
 #include <stdexcept>
 #include <array>
+#include <chrono>
+
+using hiResClock = std::chrono::high_resolution_clock;
+using duration = std::chrono::duration<float, std::chrono::seconds::period>;
 
 namespace vermicelli {
 
@@ -19,18 +25,32 @@ Application::Application(const bool verbose) : mVerbose(verbose) {
   loadGameObjects();
 }
 
-Application::~Application() {}
+Application::~Application() = default;
 
 void Application::run() {
   VermicelliSimpleRenderSystem simpleRenderSystem{mDevice, mRenderer.getSwapChainRenderPass(), mVerbose};
+  VermicelliCamera             camera{};
 
   if (mVerbose) {
     std::cout << "maxPushConstantSize = " << mDevice.mProperties.limits.maxPushConstantsSize << std::endl;
   }
   bool running = true;
+
+  auto                    viewerObject = VermicelliGameObject::createGameObject();
+  VermicelliKeyboardInput cameraController{};
+
+  auto currTime = hiResClock::now();
+
   while (running) {
     SDL_Event windowEvent;
-    if (SDL_PollEvent(&windowEvent)) {
+    auto      eventHappened = SDL_PollEvent(&windowEvent);
+
+    auto  newTime   = hiResClock::now();
+    float frameTime = duration(newTime - currTime).count();
+    currTime = newTime;
+    if (eventHappened) {
+      float aspect = mRenderer.getAspectRatio();
+      camera.setPerspectiveProjection(glm::radians(50.0f /*Field of view in degrees*/), aspect, 0.1f, 10.0f);
       if (windowEvent.type == SDL_QUIT) {
         running = false;
         break;
@@ -42,6 +62,9 @@ void Application::run() {
         }
       }
     }
+
+    cameraController.moveInPlaneXZ(frameTime, viewerObject);
+    camera.setViewYXZ(viewerObject.mTransform.mTranslation, viewerObject.mTransform.mRotation);
     if (auto commandBuffer = mRenderer.beginFrame()) {
 
       /* TODO:
@@ -51,7 +74,7 @@ void Application::run() {
        */
 
       mRenderer.beginSwapChainRenderPass(commandBuffer);
-      simpleRenderSystem.renderGameObjects(commandBuffer, mGameObjects);
+      simpleRenderSystem.renderGameObjects(commandBuffer, mGameObjects, camera);
       mRenderer.endSwapChainRenderPass(commandBuffer);
       mRenderer.endFrame();
     }
@@ -124,7 +147,7 @@ void Application::loadGameObjects() {
 
   auto cube = VermicelliGameObject::createGameObject();
   cube.mModel                  = model;
-  cube.mTransform.mTranslation = {0.0f, 0.0f, 0.5f};
+  cube.mTransform.mTranslation = {0.0f, 0.0f, 2.5f};
   cube.mTransform.mScale       = {0.5f, 0.5f, 0.5f};
 
   mGameObjects.push_back(std::move(cube));

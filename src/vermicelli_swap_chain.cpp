@@ -394,18 +394,22 @@ VkSurfaceFormatKHR VermicelliSwapChain::chooseSwapSurfaceFormat(
 
 VkPresentModeKHR VermicelliSwapChain::chooseSwapPresentMode(
         const std::vector<VkPresentModeKHR> &availablePresentModes) const {
+
+  static bool     modeChanged = true;
+  static int      mode        = VK_PRESENT_MODE_FIFO_KHR;
   for (const auto &availablePresentMode: availablePresentModes) {
-    if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
-      //if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-      // Mailbox can be better, but it was going too fast, so I switched it to vsync (fifo)
-      if (mVerbose) {
+    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      if (mVerbose && modeChanged) {
+        modeChanged = false;
+        mode        = VK_PRESENT_MODE_MAILBOX_KHR;
         std::cout << "Present mode: "
                   << ((availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) ? "Mailbox" : "V-Sync") << std::endl;
       }
       return availablePresentMode;
     }
   }
-  if (mVerbose) {
+  if (mVerbose && mode != VK_PRESENT_MODE_FIFO_KHR) {
+    modeChanged = true;
     std::cout << "Present mode: V-Sync" << std::endl;
   }
   return VK_PRESENT_MODE_FIFO_KHR;

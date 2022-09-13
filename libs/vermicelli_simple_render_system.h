@@ -19,6 +19,7 @@
 #include "vermicelli_pipeline.h"
 #include "vermicelli_device.h"
 #include "vermicelli_game_object.h"
+#include "vermicelli_camera.h"
 #include <memory>
 #include <vector>
 
@@ -43,7 +44,8 @@ public:
 
   VermicelliSimpleRenderSystem &operator=(const VermicelliSimpleRenderSystem &) = delete;
 
-  void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<VermicelliGameObject> &gameObjects);
+  void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<VermicelliGameObject> &gameObjects,
+                         const VermicelliCamera &camera);
 
 };
 

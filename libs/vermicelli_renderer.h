@@ -71,6 +71,7 @@ public:
 
   [[nodiscard]] VkRenderPass getSwapChainRenderPass() const { return mSwapChain->getRenderPass(); }
 
+  [[nodiscard]] float getAspectRatio() const { return mSwapChain->extentAspectRatio(); }
 };
 
 }

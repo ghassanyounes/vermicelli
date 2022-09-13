@@ -61,15 +61,20 @@ void VermicelliSimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 }
 
 void VermicelliSimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
-                                                     std::vector<VermicelliGameObject> &gameObjects) {
+                                                     std::vector<VermicelliGameObject> &gameObjects,
+                                                     const VermicelliCamera &camera) {
   mPipeline->bind(commandBuffer);
+
+  auto projectionView = camera.getProjection() * camera.getView();
+
   for (auto &obj: gameObjects) {
-    obj.mTransform.mRotation.y = glm::mod(obj.mTransform.mRotation.y + 0.01f, glm::two_pi<float>());
-    obj.mTransform.mRotation.x = glm::mod(obj.mTransform.mRotation.x + 0.005f, glm::two_pi<float>());
+    //obj.mTransform.mRotation.y = glm::mod(obj.mTransform.mRotation.y + 0.01f, glm::two_pi<float>());
+    //obj.mTransform.mRotation.x = glm::mod(obj.mTransform.mRotation.x + 0.005f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
     push.color     = obj.mColor;
-    push.transform = obj.mTransform.mat4();
+    push.transform = projectionView * obj.mTransform.mat4();
+    //FIXME: ^ Temporary fix - this will be passed to the shader later as a separate parameter
 
     vkCmdPushConstants(commandBuffer, mPipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData),
