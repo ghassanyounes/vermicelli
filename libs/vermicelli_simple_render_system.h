@@ -20,6 +20,7 @@
 #include "vermicelli_device.h"
 #include "vermicelli_game_object.h"
 #include "vermicelli_camera.h"
+#include "vermicelli_frame_info.h"
 #include <memory>
 #include <vector>
 
@@ -44,8 +45,7 @@ public:
 
   VermicelliSimpleRenderSystem &operator=(const VermicelliSimpleRenderSystem &) = delete;
 
-  void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<VermicelliGameObject> &gameObjects,
-                         const VermicelliCamera &camera);
+  void renderGameObjects(FrameInfo &frameInfo, std::vector<VermicelliGameObject> &gameObjects);
 
 };
 

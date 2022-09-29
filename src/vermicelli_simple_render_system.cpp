@@ -16,8 +16,8 @@
 namespace vermicelli {
 
 struct SimplePushConstantData {
-    glm::mat4             transform{1.f};
-    alignas(16) glm::vec3 color;
+    glm::mat4 transform{1.f};
+    glm::mat4 normalMatrix{1.f};
 };
 
 VermicelliSimpleRenderSystem::VermicelliSimpleRenderSystem(VermicelliDevice &device, VkRenderPass renderPass,
@@ -60,27 +60,24 @@ void VermicelliSimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
                                                    "shaders/simple_shader.frag.spv", pipelineConfig);
 }
 
-void VermicelliSimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
-                                                     std::vector<VermicelliGameObject> &gameObjects,
-                                                     const VermicelliCamera &camera) {
-  mPipeline->bind(commandBuffer);
+void
+VermicelliSimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo, std::vector<VermicelliGameObject> &gameObjects) {
+  mPipeline->bind(frameInfo.mCommandBuffer);
 
-  auto projectionView = camera.getProjection() * camera.getView();
+  auto projectionView = frameInfo.mCamera.getProjection() * frameInfo.mCamera.getView();
 
   for (auto &obj: gameObjects) {
-    //obj.mTransform.mRotation.y = glm::mod(obj.mTransform.mRotation.y + 0.01f, glm::two_pi<float>());
-    //obj.mTransform.mRotation.x = glm::mod(obj.mTransform.mRotation.x + 0.005f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    push.color     = obj.mColor;
-    push.transform = projectionView * obj.mTransform.mat4();
-    //FIXME: ^ Temporary fix - this will be passed to the shader later as a separate parameter
+    auto                   modelMatrix = obj.mTransform.mat4();
+    push.transform    = projectionView * modelMatrix;
+    push.normalMatrix = obj.mTransform.normalMatrix();
 
-    vkCmdPushConstants(commandBuffer, mPipelineLayout,
+    vkCmdPushConstants(frameInfo.mCommandBuffer, mPipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData),
                        &push);
-    obj.mModel->bind(commandBuffer);
-    obj.mModel->draw(commandBuffer);
+    obj.mModel->bind(frameInfo.mCommandBuffer);
+    obj.mModel->draw(frameInfo.mCommandBuffer);
   }
 }
 }

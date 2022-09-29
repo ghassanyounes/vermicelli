@@ -29,6 +29,11 @@ FetchContent_Declare(fmt
         )
 FetchContent_MakeAvailable(fmt)
 
+FetchContent_Declare(tinyobjloader
+        GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+        )
+FetchContent_MakeAvailable(tinyobjloader)
+
 FetchContent_Declare(cmake-spirv
         GIT_REPOSITORY https://github.com/liliolett/cmake-spirv.git
         GIT_TAG origin/v1
@@ -53,6 +58,8 @@ file(GLOB SOURCES src/*.cpp)
 
 add_executable(vermicelli ${SOURCES})
 
+set_property(TARGET vermicelli PROPERTY DEPENDS ${SOURCES})
+
 if (THREADS_HAVE_PTHREAD_ARG)
     target_compile_options(vermicelli PUBLIC "-pthread")
 endif ()
@@ -64,7 +71,7 @@ include_directories(libs/)
 
 target_link_libraries(
         vermicelli
-        SDL2pp::SDL2pp glm fmt::fmt
+        SDL2pp::SDL2pp glm fmt::fmt tinyobjloader
         ${CMAKE_DL_LIBS} ${glm_LIBRARIES} ${SDL2pp_LIBRARIES} ${SDL2_LIBRARIES} ${Vulkan_LIBRARIES}
         ${Threads_LIBRARIES}
 )

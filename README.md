@@ -36,9 +36,11 @@ sudo pacman -S shaderc
 ```
 
 - CMake will pull the following repositories from GitHub:
-  [![]()](https://github.com/g-truc/glm) [![]()](https://github.com/liliolett/cmake-spirv) [![]()](https://github.com/fmtlib/fmt)
+  [![]()](https://github.com/g-truc/glm) [![]()](https://github.com/liliolett/cmake-spirv) [![]()](https://github.com/fmtlib/fmt)  [![]()](https://github.com/tinyobjloader/tinyobjloader)
   - If you are on Arch linux, you can install SDL2pp through the AUR, e.g.
 
 ```shell
 trizen -S sdl2pp
+trizen -S fmt-git
+trizen -S tinyobjloader
 ```

@@ -11,15 +11,22 @@
 #include "vermicelli_simple_render_system.h"
 #include "vermicelli_functions.h"
 #include "vermicelli_keyboard_input.h"
+#include "vermicelli_buffer.h"
 #include <glm/gtc/constants.hpp> // PI
 #include <stdexcept>
 #include <array>
 #include <chrono>
+#include <numeric>
 
 using hiResClock = std::chrono::high_resolution_clock;
 using duration = std::chrono::duration<float, std::chrono::seconds::period>;
 
 namespace vermicelli {
+
+struct GlobalUbo {
+    glm::mat4 mProjectionView{1.0f};
+    glm::vec3 mLightDirection = glm::normalize(glm::vec3{1.0f, -3.0f, -1.0f});
+};
 
 Application::Application(const bool verbose) : mVerbose(verbose) {
   loadGameObjects();
@@ -28,6 +35,23 @@ Application::Application(const bool verbose) : mVerbose(verbose) {
 Application::~Application() = default;
 
 void Application::run() {
+  auto minOffsetAlignment = std::lcm(
+          mDevice.mProperties.limits.minUniformBufferOffsetAlignment,
+          mDevice.mProperties.limits.nonCoherentAtomSize);
+
+  std::vector<std::unique_ptr<VermicelliBuffer> > uboBuffers(VermicelliSwapChain::MAX_FRAMES_IN_FLIGHT);
+
+  for (auto &uboBuffer: uboBuffers) {
+    uboBuffer = std::make_unique<VermicelliBuffer>(
+            mDevice,
+            sizeof(GlobalUbo),
+            1,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    uboBuffer->map();
+  }
+
+
   VermicelliSimpleRenderSystem simpleRenderSystem{mDevice, mRenderer.getSwapChainRenderPass(), mVerbose};
   VermicelliCamera             camera{};
 
@@ -66,6 +90,18 @@ void Application::run() {
     cameraController.moveInPlaneXZ(frameTime, viewerObject);
     camera.setViewYXZ(viewerObject.mTransform.mTranslation, viewerObject.mTransform.mRotation);
     if (auto commandBuffer = mRenderer.beginFrame()) {
+      int       frameIndex = mRenderer.getFrameIndex();
+      FrameInfo frameInfo{
+              frameIndex,
+              frameTime,
+              commandBuffer,
+              camera
+      };
+      //update
+      GlobalUbo ubo{};
+      ubo.mProjectionView = camera.getProjection() * camera.getView();
+      uboBuffers[frameIndex]->writeToBuffer(&ubo);
+      uboBuffers[frameIndex]->flush();
 
       /* TODO:
        * begin offscreen shadow pass
@@ -74,7 +110,7 @@ void Application::run() {
        */
 
       mRenderer.beginSwapChainRenderPass(commandBuffer);
-      simpleRenderSystem.renderGameObjects(commandBuffer, mGameObjects, camera);
+      simpleRenderSystem.renderGameObjects(frameInfo, mGameObjects);
       mRenderer.endSwapChainRenderPass(commandBuffer);
       mRenderer.endFrame();
     }
@@ -82,75 +118,17 @@ void Application::run() {
   vkDeviceWaitIdle(mDevice.device());
 }
 
-// temporary helper function, creates a 1x1x1 cube centered at offset
-std::unique_ptr<VermicelliModel> createCubeModel(VermicelliDevice &device, glm::vec3 offset, bool verbose) {
-  std::vector<VermicelliModel::Vertex> vertices{
-
-          // left face (white)
-          {{-.5f, -.5f, -.5f},  {.9f, .9f, .9f}},
-          {{-.5f, .5f,  .5f},   {.9f, .9f, .9f}},
-          {{-.5f, -.5f, .5f},   {.9f, .9f, .9f}},
-          {{-.5f, -.5f, -.5f},  {.9f, .9f, .9f}},
-          {{-.5f, .5f,  -.5f},  {.9f, .9f, .9f}},
-          {{-.5f, .5f,  .5f},   {.9f, .9f, .9f}},
-
-          // right face (yellow)
-          {{.5f,  -.5f, -.5f},  {.8f, .8f, .1f}},
-          {{.5f,  .5f,  .5f},   {.8f, .8f, .1f}},
-          {{.5f,  -.5f, .5f},   {.8f, .8f, .1f}},
-          {{.5f,  -.5f, -.5f},  {.8f, .8f, .1f}},
-          {{.5f,  .5f,  -.5f},  {.8f, .8f, .1f}},
-          {{.5f,  .5f,  .5f},   {.8f, .8f, .1f}},
-
-          // top face (orange, remember y axis points down)
-          {{-.5f, -.5f, -.5f},  {.9f, .6f, .1f}},
-          {{.5f,  -.5f, .5f},   {.9f, .6f, .1f}},
-          {{-.5f, -.5f, .5f},   {.9f, .6f, .1f}},
-          {{-.5f, -.5f, -.5f},  {.9f, .6f, .1f}},
-          {{.5f,  -.5f, -.5f},  {.9f, .6f, .1f}},
-          {{.5f,  -.5f, .5f},   {.9f, .6f, .1f}},
-
-          // bottom face (red)
-          {{-.5f, .5f,  -.5f},  {.8f, .1f, .1f}},
-          {{.5f,  .5f,  .5f},   {.8f, .1f, .1f}},
-          {{-.5f, .5f,  .5f},   {.8f, .1f, .1f}},
-          {{-.5f, .5f,  -.5f},  {.8f, .1f, .1f}},
-          {{.5f,  .5f,  -.5f},  {.8f, .1f, .1f}},
-          {{.5f,  .5f,  .5f},   {.8f, .1f, .1f}},
-
-          // nose face (blue)
-          {{-.5f, -.5f, 0.5f},  {.1f, .1f, .8f}},
-          {{.5f,  .5f,  0.5f},  {.1f, .1f, .8f}},
-          {{-.5f, .5f,  0.5f},  {.1f, .1f, .8f}},
-          {{-.5f, -.5f, 0.5f},  {.1f, .1f, .8f}},
-          {{.5f,  -.5f, 0.5f},  {.1f, .1f, .8f}},
-          {{.5f,  .5f,  0.5f},  {.1f, .1f, .8f}},
-
-          // tail face (green)
-          {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-          {{.5f,  .5f,  -0.5f}, {.1f, .8f, .1f}},
-          {{-.5f, .5f,  -0.5f}, {.1f, .8f, .1f}},
-          {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-          {{.5f,  -.5f, -0.5f}, {.1f, .8f, .1f}},
-          {{.5f,  .5f,  -0.5f}, {.1f, .8f, .1f}},
-
-  };
-  for (auto                            &v: vertices) {
-    v.mPosition += offset;
-  }
-  return std::make_unique<VermicelliModel>(device, vertices, verbose);
-}
-
-
 void Application::loadGameObjects() {
-  std::shared_ptr<VermicelliModel> model = createCubeModel(mDevice, {0.0f, 0.0f, 0.0f}, mVerbose);
+  std::shared_ptr<VermicelliModel> model = VermicelliModel::createModelFromFile(mDevice, "../models/new_kirb.obj",
+                                                                                mVerbose);
 
-  auto cube = VermicelliGameObject::createGameObject();
-  cube.mModel                  = model;
-  cube.mTransform.mTranslation = {0.0f, 0.0f, 2.5f};
-  cube.mTransform.mScale       = {0.5f, 0.5f, 0.5f};
+  auto gameObject = VermicelliGameObject::createGameObject();
+  gameObject.mModel                  = model;
+  gameObject.mTransform.mTranslation = {0.0f, 0.0f, 2.5f};
+  gameObject.mTransform.mScale       = {0.005f, 0.005f, 0.005f};
+  gameObject.mTransform.mRotation    = {0.0f, glm::pi<float>(), 0.0f};
 
-  mGameObjects.push_back(std::move(cube));
+  mGameObjects.push_back(std::move(gameObject));
 }
 
 }
