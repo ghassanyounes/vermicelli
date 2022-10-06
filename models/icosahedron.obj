@@ -1,6 +1,6 @@
 # Blender 3.3.0
 # www.blender.org
-mtllib mtl/icosahedron.mtl
+mtllib icosahedron.mtl
 o icosahedron
 v 6.881909 4.253254 -5.000000 1.000 0.749 0.749
                                           v 0.000000 9.510565 0.000000 0.984 0.192 0.600

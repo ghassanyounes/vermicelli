@@ -34,11 +34,6 @@ FetchContent_Declare(tinyobjloader
         )
 FetchContent_MakeAvailable(tinyobjloader)
 
-FetchContent_Declare(tiny_gltf
-        GIT_REPOSITORY https://github.com/syoyo/tinygltf
-        )
-FetchContent_MakeAvailable(tiny_gltf)
-
 FetchContent_Declare(cmake-spirv
         GIT_REPOSITORY https://github.com/liliolett/cmake-spirv.git
         GIT_TAG origin/v1

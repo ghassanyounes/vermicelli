@@ -10,15 +10,10 @@
 
 #include "vermicelli_model.h"
 #include "vermicelli_functions.h"
+
 #include <tiny_obj_loader.h>
 
-#ifdef USE_ASSIMP
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#endif
 #define GLM_ENABLE_EXPERIMENTAL
-
 #include <glm/gtx/hash.hpp>
 
 #include <cassert>
@@ -152,22 +147,9 @@ VermicelliModel::createModelFromFile(VermicelliDevice &device, const std::string
   }
   return std::make_unique<VermicelliModel>(device, builder, verbose);
 }
-
-#ifdef USE_ASSIMP
-
-void VermicelliModel::Builder::loadModel(const std::string &filePath) {
-  Assimp::Importer importer;
-  const aiScene* scene = importer.ReadFile(filePath.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-  if (!scene || scene -> mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
-    return;
-  }
-}
-#else
-
 void VermicelliModel::Builder::loadModel(const std::string &filePath) {
   tinyobj::ObjReaderConfig readr_config;
-  readr_config.mtl_search_path = "../models/";
+  readr_config.mtl_search_path = "../models/mtl/";
 
   tinyobj::ObjReader reader;
   if (!reader.ParseFromFile(filePath, readr_config)) {
@@ -230,8 +212,6 @@ void VermicelliModel::Builder::loadModel(const std::string &filePath) {
     }
   }
 }
-
-#endif
 }
 
 #if 0
