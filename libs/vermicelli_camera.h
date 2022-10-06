@@ -21,6 +21,7 @@ namespace vermicelli {
 class VermicelliCamera {
   glm::mat4 mProjectionMatrix{1.0f};
   glm::mat4 mViewMatrix{1.0f};
+  glm::mat4 mInverseViewMatrix{1.0f};
 public:
   void setOrthographicProjection(float left, float right, float top, float bottom, float near, float far);
 
@@ -37,6 +38,8 @@ public:
   [[nodiscard]] const glm::mat4 &getProjection() const { return mProjectionMatrix; }
 
   [[nodiscard]] const glm::mat4 &getView() const { return mViewMatrix; }
+
+  [[nodiscard]] const glm::mat4 &getInverseView() const { return mInverseViewMatrix; }
 };
 
 }

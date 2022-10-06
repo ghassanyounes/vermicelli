@@ -28,7 +28,8 @@ public:
       LookLeft  = SDL_SCANCODE_LEFT,
       LookRight = SDL_SCANCODE_RIGHT,
       LookUp    = SDL_SCANCODE_UP,
-      LookDown  = SDL_SCANCODE_DOWN
+      LookDown  = SDL_SCANCODE_DOWN,
+      DebugKey  = SDL_SCANCODE_E
   };
 
   void moveInPlaneXZ(float dt, VermicelliGameObject &gameObject);

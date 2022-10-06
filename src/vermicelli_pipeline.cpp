@@ -59,8 +59,8 @@ void VermicelliPipeline::createGraphicsPipeline(const std::string &vertFilePath,
   shaderStages[1].pNext               = nullptr;
   shaderStages[1].pSpecializationInfo = nullptr;
 
-  auto                                 attributeDescriptions = VermicelliModel::Vertex::getAttributeDescriptions();
-  auto                                 bindingDescriptions   = VermicelliModel::Vertex::getBindingDescriptions();
+  auto                                 &attributeDescriptions = configInfo.mAttributeDescriptions;
+  auto                                 &bindingDescriptions   = configInfo.mBindingDescriptions;
   VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
   vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
   vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -190,6 +190,9 @@ void VermicelliPipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInf
   configInfo.mDynamicStateInfo.pDynamicStates    = configInfo.mDynamicStateEnables.data();
   configInfo.mDynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(configInfo.mDynamicStateEnables.size());
   configInfo.mDynamicStateInfo.flags             = 0;
+
+  configInfo.mAttributeDescriptions = VermicelliModel::Vertex::getAttributeDescriptions();
+  configInfo.mBindingDescriptions   = VermicelliModel::Vertex::getBindingDescriptions();
 }
 
 }

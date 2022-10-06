@@ -23,18 +23,20 @@ struct PipelineConfigInfo {
 
     PipelineConfigInfo(const PipelineConfigInfo &) = delete;
 
-    VkPipelineViewportStateCreateInfo      mViewportInfo;
-    VkPipelineInputAssemblyStateCreateInfo mInputAssemblyInfo;
-    VkPipelineRasterizationStateCreateInfo mRasterizationInfo;
-    VkPipelineMultisampleStateCreateInfo   mMultisampleInfo;
-    VkPipelineColorBlendAttachmentState    mColorBlendAttachment;
-    VkPipelineColorBlendStateCreateInfo    mColorBlendInfo;
-    VkPipelineDepthStencilStateCreateInfo  mDepthStencilInfo;
-    std::vector<VkDynamicState>            mDynamicStateEnables;
-    VkPipelineDynamicStateCreateInfo       mDynamicStateInfo;
-    VkPipelineLayout                       mPipelineLayout = nullptr;
-    VkRenderPass                           mRenderPass     = nullptr;
-    uint32_t                               mSubpass        = 0;
+    std::vector<VkVertexInputAttributeDescription> mAttributeDescriptions{};
+    std::vector<VkVertexInputBindingDescription>   mBindingDescriptions{};
+    VkPipelineViewportStateCreateInfo              mViewportInfo;
+    VkPipelineInputAssemblyStateCreateInfo         mInputAssemblyInfo;
+    VkPipelineRasterizationStateCreateInfo         mRasterizationInfo;
+    VkPipelineMultisampleStateCreateInfo           mMultisampleInfo;
+    VkPipelineColorBlendAttachmentState            mColorBlendAttachment;
+    VkPipelineColorBlendStateCreateInfo            mColorBlendInfo;
+    VkPipelineDepthStencilStateCreateInfo          mDepthStencilInfo;
+    std::vector<VkDynamicState>                    mDynamicStateEnables;
+    VkPipelineDynamicStateCreateInfo               mDynamicStateInfo;
+    VkPipelineLayout                               mPipelineLayout = nullptr;
+    VkRenderPass                                   mRenderPass     = nullptr;
+    uint32_t                                       mSubpass        = 0;
 };
 
 class VermicelliPipeline {

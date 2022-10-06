@@ -29,6 +29,26 @@ glm::vec3 hex(std::string hex);
 
 glm::vec3 hex(uint32_t i_hex);
 
+const glm::vec3 pink{1.000f, 0.749f, 0.749f};
+const glm::vec3 magenta{0.984f, 0.192f, 0.600f};
+const glm::vec3 red{1.000f, 0.000f, 0.000f};
+const glm::vec3 brown{0.749f, 0.502f, 0.251f};
+const glm::vec3 orange{1.000f, 0.502f, 0.000f};
+const glm::vec3 yellow{1.000f, 0.922f, 0.239f};
+const glm::vec3 lime{0.749f, 1.000f, 0.000f};
+const glm::vec3 green{0.000f, 0.996f, 0.000f};
+const glm::vec3 olive{0.624f, 0.549f, 0.094f};
+const glm::vec3 teal{0.000f, 0.502f, 0.502f};
+const glm::vec3 cyan{0.000f, 0.725f, 0.949f};
+const glm::vec3 blue{0.000f, 0.000f, 1.000f};
+const glm::vec3 indigo{0.055f, 0.298f, 0.973f};
+const glm::vec3 violet{0.502f, 0.000f, 0.502f};
+const glm::vec3 purple{0.749f, 0.000f, 0.251f};
+const glm::vec3 black{0.000f, 0.000f, 0.000f};
+const glm::vec3 white{1.000f, 1.000f, 1.000f};
+const glm::vec3 gray{0.502f, 0.502f, 0.502f};
+const glm::vec3 lGray{0.749f, 0.749f, 0.749f};
+const glm::vec3 dGray{0.251f, 0.251f, 0.251f};
 }
 
 void helpMenu();

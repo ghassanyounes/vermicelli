@@ -19,17 +19,19 @@
 #include "vermicelli_device.h"
 #include "vermicelli_renderer.h"
 #include "vermicelli_game_object.h"
+#include "vermicelli_descriptors.h"
 #include <memory>
 #include <vector>
 
 namespace vermicelli {
 
 class Application {
-  VermicelliWindow                  mWindow{"Vermicelli", mDim};
-  bool                              mVerbose;
-  VermicelliDevice                  mDevice{mWindow, mVerbose};
-  VermicelliRenderer                mRenderer{mWindow, mDevice, mVerbose};
-  std::vector<VermicelliGameObject> mGameObjects;
+  VermicelliWindow                          mWindow{"Vermicelli", mDim};
+  bool                                      mVerbose;
+  VermicelliDevice                          mDevice{mWindow, mVerbose};
+  VermicelliRenderer                        mRenderer{mWindow, mDevice, mVerbose};
+  std::unique_ptr<VermicelliDescriptorPool> mGlobalPool{};
+  VermicelliGameObject::Map                 mGameObjects;
 
   void loadGameObjects();
 

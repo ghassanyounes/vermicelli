@@ -12,8 +12,10 @@
 #pragma once
 
 #include "vermicelli_model.h"
+#include "vermicelli_functions.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
+#include <unordered_map>
 
 namespace vermicelli {
 
@@ -26,14 +28,21 @@ struct TransformComponent {
     glm::mat3 normalMatrix();
 };
 
+struct VermicelliPointLightComponent {
+    float mLightIntensity = 1.0f;
+};
+
 class VermicelliGameObject {
 public:
   using id_t = unsigned int;
+  using Map = std::unordered_map<id_t, VermicelliGameObject>;
 
   static VermicelliGameObject createGameObject() {
     static id_t currentID = 0;
     return VermicelliGameObject(currentID++);
   }
+
+  static VermicelliGameObject makePointLight(float intensity = 5.0f, float radius = 1.0f, glm::vec3 col = color::white);
 
   VermicelliGameObject(const VermicelliGameObject &) = delete;
 
@@ -45,9 +54,12 @@ public:
 
   id_t getID() const { return mID; }
 
-  std::shared_ptr<VermicelliModel> mModel{};
-  glm::vec3                        mColor{};
-  TransformComponent               mTransform{};
+  glm::vec3          mColor{};
+  TransformComponent mTransform{};
+
+  // Optional pointer components;
+  std::shared_ptr<VermicelliModel>               mModel{};
+  std::unique_ptr<VermicelliPointLightComponent> mPointLight = nullptr;
 
 private:
   explicit VermicelliGameObject(id_t objID) : mID{objID} {}

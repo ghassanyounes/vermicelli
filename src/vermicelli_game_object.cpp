@@ -54,4 +54,13 @@ glm::mat4 TransformComponent::mat4() {
           {mScale.z * (c2 * s1),                mScale.z * (-s2),     mScale.z * (c1 * c2),                0.0f},
           {mTranslation.x,                      mTranslation.y,       mTranslation.z,                      1.0f}};
 }
+
+VermicelliGameObject VermicelliGameObject::makePointLight(float intensity, float radius, glm::vec3 col) {
+  VermicelliGameObject gameObject = VermicelliGameObject::createGameObject();
+  gameObject.mColor                       = col;
+  gameObject.mTransform.mScale.x          = radius;
+  gameObject.mPointLight                  = std::make_unique<VermicelliPointLightComponent>();
+  gameObject.mPointLight->mLightIntensity = intensity;
+  return gameObject;
+}
 }

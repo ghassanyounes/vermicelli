@@ -34,6 +34,11 @@ FetchContent_Declare(tinyobjloader
         )
 FetchContent_MakeAvailable(tinyobjloader)
 
+FetchContent_Declare(tiny_gltf
+        GIT_REPOSITORY https://github.com/syoyo/tinygltf
+        )
+FetchContent_MakeAvailable(tiny_gltf)
+
 FetchContent_Declare(cmake-spirv
         GIT_REPOSITORY https://github.com/liliolett/cmake-spirv.git
         GIT_TAG origin/v1
@@ -50,11 +55,11 @@ include(AddSpirvModules)
 add_spirv_modules(shaders
         SOURCE_DIR shaders/
         BINARY_DIR shaders/
-        SOURCES simple_shader.vert simple_shader.frag)
+        SOURCES simple_shader.vert simple_shader.frag point_light.vert point_light.frag)
 
 add_compile_options(-g -O2)
 
-file(GLOB SOURCES src/*.cpp)
+file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 add_executable(vermicelli ${SOURCES})
 
